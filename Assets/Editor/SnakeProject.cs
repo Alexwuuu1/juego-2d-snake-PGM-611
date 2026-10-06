@@ -40,6 +40,7 @@ public static class SnakeProject
         var food = Prefab("Comida", Sprite("Food/Fruit"), ContactKind.Food, material, sparkle);
         var wall = Prefab("Pared", Sprite("Environment/Wall"), ContactKind.Wall, material);
         var tileA = Tile("SueloA", Sprite("Environment/TileA")); var tileB = Tile("SueloB", Sprite("Environment/TileB"));
+        AssetDatabase.SaveAssets();
         for (int i = 0; i < Scenes.Length; i++)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -59,13 +60,19 @@ public static class SnakeProject
                 gridObject.transform.position = new Vector3(-14 * SnakeGame.Cell, -.25f - 10 * SnakeGame.Cell, 0);
                 var floor = new GameObject("Suelo Tilemap", typeof(Tilemap), typeof(TilemapRenderer)); floor.transform.SetParent(gridObject.transform, false);
                 var map = floor.GetComponent<Tilemap>(); floor.GetComponent<TilemapRenderer>().sortingOrder = -10;
-                for (int y = 0; y < 20; y++) for (int x = 0; x < 28; x++) map.SetTile(new Vector3Int(x, y, 0), (x + y) % 2 == 0 ? tileA : tileB);
+                var floorTiles = new TileBase[28 * 20];
+                for (int y = 0; y < 20; y++) for (int x = 0; x < 28; x++) floorTiles[x + y * 28] = (x + y) % 2 == 0 ? tileA : tileB;
+                map.SetTilesBlock(new BoundsInt(0, 0, 0, 28, 20, 1), floorTiles);
+                map.RefreshAllTiles(); map.CompressBounds();
+                if (!map.HasTile(Vector3Int.zero)) throw new BuildFailedException("Tilemap sin baldosas");
+                Debug.Log("TILEMAP_OK: " + map.GetUsedTilesCount() + " baldosas distintas, 560 celdas.");
                 Wall(wall, "Borde izquierdo", new Vector2(-14.5f * SnakeGame.Cell, -.25f), new Vector2(SnakeGame.Cell, 22 * SnakeGame.Cell));
                 Wall(wall, "Borde derecho", new Vector2(14.5f * SnakeGame.Cell, -.25f), new Vector2(SnakeGame.Cell, 22 * SnakeGame.Cell));
                 Wall(wall, "Borde superior", new Vector2(0, -.25f + 10.5f * SnakeGame.Cell), new Vector2(28 * SnakeGame.Cell, SnakeGame.Cell));
                 Wall(wall, "Borde inferior", new Vector2(0, -.25f - 10.5f * SnakeGame.Cell), new Vector2(28 * SnakeGame.Cell, SnakeGame.Cell));
             }
-            EditorSceneManager.SaveScene(scene, Root + "Scenes/" + Scenes[i] + ".unity");
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene, Root + "Scenes/" + Scenes[i] + ".unity")) throw new BuildFailedException("No se guardó " + Scenes[i]);
         }
         var settings = new EditorBuildSettingsScene[3];
         for (int i = 0; i < 3; i++) settings[i] = new EditorBuildSettingsScene(Root + "Scenes/" + Scenes[i] + ".unity", true);
@@ -75,6 +82,8 @@ public static class SnakeProject
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, "com.pgm611.snaketrio");
+        PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows64, false);
+        PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, new[] { UnityEngine.Rendering.GraphicsDeviceType.Direct3D11 });
         AssetDatabase.SaveAssets(); EditorSceneManager.OpenScene(Root + "Scenes/Menu.unity");
         Debug.Log("SCENES_OK: tres escenas, sprites, prefabs, animaciones, Tilemap y colliders.");
     }

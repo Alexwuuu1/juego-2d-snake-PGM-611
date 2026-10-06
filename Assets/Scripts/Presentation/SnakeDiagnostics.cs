@@ -44,6 +44,7 @@ namespace SnakeTrio
             string output = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.dataPath),
                 captureGame ? "SnakeTrio-Juego.png" : captureResult ? "SnakeTrio-Resultado.png" : "SnakeTrio-Menu.png");
             if (captureGame) FindFirstObjectByType<SnakeGame>().FreezeForCapture();
+            yield return null;
             yield return new WaitForEndOfFrame(); ScreenCapture.CaptureScreenshot(output);
             yield return new WaitForSecondsRealtime(1); Debug.Log("CAPTURE_OK " + output); Application.Quit(0);
         }
