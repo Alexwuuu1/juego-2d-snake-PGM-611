@@ -15,7 +15,10 @@ namespace SnakeTrio
         Font font;
         Text scoreText, fruitText, readyText, difficultyText, recordText;
         Button[] difficultyButtons = new Button[3];
-        GameObject pausePanel, readyPanel;
+        GameObject pausePanel, readyPanel, modal;
+        GameObject previousSelection;
+        public bool ModalOpen => modal != null;
+        public string ModalName => modal != null ? modal.name : "";
         SnakeGame game;
 
         void Awake()
@@ -34,8 +37,10 @@ namespace SnakeTrio
         void Update()
         {
             string scene = SceneManager.GetActiveScene().name;
-            if (Input.GetKeyDown(KeyCode.Return) && scene != "Juego") Play();
-            if (Input.GetKeyDown(KeyCode.R) && scene == "Resultado") Play();
+            if (Input.GetKeyDown(KeyCode.Escape) && ModalOpen) { CloseModal(); return; }
+            if (Input.GetKeyDown(KeyCode.Return) && scene != "Juego" && !ModalOpen
+                && EventSystem.current.currentSelectedGameObject == null) Play();
+            if (Input.GetKeyDown(KeyCode.R) && scene == "Resultado" && !ModalOpen) Play();
             if (Input.GetKeyDown(KeyCode.F12))
             {
                 string dir = System.IO.Path.GetDirectoryName(Application.dataPath);
@@ -45,7 +50,7 @@ namespace SnakeTrio
             { readyPanel.SetActive(game.ReadyTime > 0 && !game.Paused);
               readyText.text = "PREPÁRATE  ·  " + Mathf.CeilToInt(game.ReadyTime); }
         }
-        public void Play() { SceneManager.LoadScene("Juego"); }
+        public void Play() { if (!ModalOpen) SceneManager.LoadScene("Juego"); }
         public void RefreshScore()
         {
             if (game == null || game.Model == null) return;
@@ -137,10 +142,40 @@ tu mejor partida.", 74, 378, 510, 65, 22, Muted);
         }
         void Credits(Transform parent)
         {
-            Box(parent, "Divisor", 73, 75, 1134, 1, Hex("31504a"));
-            Label(parent, "ALEJANDRO VILLALPANDO ROJAS\n@Alexwuuu1", 74, 20, 371, 45, 12, Muted);
-            Label(parent, "GALILEA ALISON LLUSCO ASISTIRI\n@Galileya", 474, 20, 371, 45, 12, Muted);
-            Label(parent, "CRISTOPHER IORI LAZCANO GUTIERREZ\n@Crisshubb", 856, 20, 371, 45, 12, Muted);
+            Button(parent, "CRÉDITOS", "CRÉDITOS", 74, 48, 138, 37, PanelColor, Light, OpenCredits, 12);
+            Label(parent, "PROYECTO ACADÉMICO   /   PGM-611", 807, 48, 400, 37, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
+        }
+        RectTransform OpenModal(string name, string title, string subtitle)
+        {
+            CloseModal(); previousSelection = EventSystem.current.currentSelectedGameObject;
+            modal = Box(canvas, name, 0, 0, 1280, 720, new Color(0, .06f, .06f, .92f)).gameObject;
+            modal.GetComponent<Image>().raycastTarget = true;
+            var panel = Box(modal.transform, "Tarjeta", 320, 134, 640, 452, PanelColor); SnakeTheme.Round(panel);
+            Label(panel.transform, title, 36, 362, 568, 48, 30, Light, FontStyle.Bold);
+            Label(panel.transform, subtitle, 36, 316, 568, 39, 16, Muted);
+            var close = Button(panel.transform, "CERRAR", "VOLVER", 36, 28, 568, 46, Mint, Background, CloseModal, 16);
+            EventSystem.current.SetSelectedGameObject(close.gameObject);
+            // El teclado solo navega por la tarjeta activa.
+            foreach (var selectable in canvas.GetComponentsInChildren<Selectable>())
+                if (!selectable.transform.IsChildOf(modal.transform)) selectable.interactable = false;
+            return panel.rectTransform;
+        }
+        public void CloseModal()
+        {
+            if (modal == null) return;
+            modal.SetActive(false); Destroy(modal); modal = null;
+            foreach (var selectable in canvas.GetComponentsInChildren<Selectable>()) selectable.interactable = true;
+            EventSystem.current.SetSelectedGameObject(previousSelection);
+        }
+        public void OpenCredits()
+        {
+            var panel = OpenModal("Créditos", "EL EQUIPO", "Snake Trío · Videojuego 2D · PGM-611");
+            Label(panel, "Alejandro Villalpando Rojas", 36, 250, 568, 30, 21, Light, FontStyle.Bold);
+            Label(panel, "@Alexwuuu1", 36, 222, 568, 25, 15, Mint);
+            Label(panel, "Galilea Alison Llusco Asistiri", 36, 173, 568, 30, 21, Light, FontStyle.Bold);
+            Label(panel, "@Galileya", 36, 145, 568, 25, 15, Mint);
+            Label(panel, "Cristopher Iori Lazcano Gutierrez", 36, 96, 568, 30, 21, Light, FontStyle.Bold);
+            Label(panel, "@Crisshubb", 36, 78, 568, 22, 15, Mint);
         }
         void MiniBoard(Transform parent, float x, float y, float cell)
         {
