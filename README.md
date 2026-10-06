@@ -12,7 +12,7 @@ Proyecto académico de videojuego 2D desarrollado en **Unity 6 y C#** para la as
 
 ## Ejecutable para Windows
 
-[Descargar Snake Trío v1.2.0](https://github.com/Alexwuuu1/juego-2d-snake-PGM-611/releases/download/v1.2.0/SnakeTrio-Windows-v1.2.0.zip)
+[Descargar Snake Trío v1.3.0](https://github.com/Alexwuuu1/juego-2d-snake-PGM-611/releases/download/v1.3.0/SnakeTrio-Windows-v1.3.0.zip)
 
 Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la carpeta `SnakeTrio_Data` y las DLL incluidas. No es necesario instalar Unity para jugar.
 
@@ -24,22 +24,23 @@ Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la
 - Colisiones con bordes y cuerpo; victoria al completar el tablero.
 - Tres escenas: menú, juego y resultado.
 - Música, efectos de comida, choque, victoria y botones.
-- Ayuda, créditos y ajustes con volumen de música y efectos independientes.
+- Ayuda, créditos y ajustes con volumen de música y efectos independientes y una opción para restablecer el sonido (música 25%, efectos 32%, sonido activo).
 - Pausa automática al cambiar de ventana y cuenta breve al reanudar.
 - Confirmación antes de reiniciar o abandonar la partida desde la pausa.
 - Resultados con tiempo, frutas, longitud, movimientos y récord por dificultad.
-- Dificultad, sonido y récords guardados localmente.
+- Dificultad, sonido, pantalla completa y récords guardados localmente.
 
 ## Controles
 
 | Tecla | Acción |
 | --- | --- |
-| Flechas | Cambiar dirección |
+| Flechas o W/A/S/D | Cambiar dirección |
 | Esc o P | Pausar o continuar |
 | Enter | Activar el botón seleccionado o comenzar desde el menú |
 | R | Volver a jugar desde el resultado |
 | M | Silenciar o reactivar sonido |
 | F1 | Abrir ayuda desde el menú o resultado |
+| F11 | Alternar ventana y pantalla completa |
 | F12 | Guardar una captura junto al ejecutable |
 
 La serpiente no puede girar directamente 180 grados. Se procesa un giro por avance.
@@ -52,7 +53,7 @@ Versión del editor: **6000.3.11f1**.
 2. Abrir `Assets/Scenes/Menu.unity` y pulsar **Play**.
 3. Para generar el ejecutable: **Snake Trío → Compilar Windows**.
 
-La compilación se genera en `Builds/Windows-v1.2/SnakeTrio.exe`. Las escenas, los prefabs, las animaciones y los recursos están incluidos en el repositorio.
+La compilación se genera en `Builds/Windows-v1.3/SnakeTrio.exe`. Las escenas, los prefabs, las animaciones y los recursos están incluidos en el repositorio.
 
 ## Estructura
 
@@ -74,7 +75,7 @@ Unity importa directamente las fuentes `.aseprite` mediante **2D Aseprite Import
 
 ## Validación
 
-En el editor, **Snake Trío → Validar reglas** comprueba dirección, crecimiento, puntuación, comida en celdas libres, choques, cola y victoria. El ejecutable incluye una comprobación de inicio, ajustes, pausa, componentes físicos, comida, crecimiento y transición al resultado:
+En el editor, **Snake Trío → Validar reglas** comprueba dirección, crecimiento, puntuación, comida en celdas libres, choques, cola y victoria. El ejecutable incluye una comprobación de inicio, ajustes, restablecimiento de sonido, pantalla completa, pausa, componentes físicos, comida, crecimiento, reinicio, choque, resultado y reintento:
 
 ```powershell
 .\SnakeTrio.exe --smoke-test -batchmode -nographics -logFile prueba.log
