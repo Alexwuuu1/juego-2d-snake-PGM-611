@@ -59,12 +59,19 @@ namespace SnakeTrio
             if (!paused) ReadyTime = Mathf.Max(ReadyTime, 1f);
             screen.ShowPause(paused);
         }
+        public void RestartGame()
+        {
+            if (ending) return;
+            SceneManager.LoadScene("Juego");
+        }
+        public void ReturnToMenu() { SceneManager.LoadScene("Menu"); }
         public void PauseForFocusLoss() { SetPaused(true); }
         void OnApplicationFocus(bool focus) { if (!focus) PauseForFocusLoss(); }
         void OnApplicationPause(bool paused) { if (paused) PauseForFocusLoss(); }
 
         public StepOutcome Step()
         {
+            if (ending || Model == null) return Model != null && Model.Victory ? StepOutcome.Won : StepOutcome.Lost;
             Physics2D.SyncTransforms();
             // Los Collider2D de paredes y segmentos participan realmente en la derrota.
             // Se consulta antes de mover la cabeza; se excluye la cola que se libera.
