@@ -1,0 +1,153 @@
+using System;
+using System.IO;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
+using SnakeTrio;
+
+public static class SnakeProject
+{
+    const string Root = "Assets/";
+    static readonly string[] Scenes = { "Menu", "Juego", "Resultado" };
+    static Sprite Sprite(string path) => AssetDatabase.LoadAssetAtPath<Sprite>(Root + "Sprites/" + path + ".png");
+
+    [MenuItem("Snake Trío/Preparar escenas")]
+    public static void Prepare()
+    {
+        foreach (string dir in new[] { "Scenes", "Prefabs", "Animations", "Materials", "Tiles" }) Directory.CreateDirectory(Root + dir);
+        AssetDatabase.Refresh();
+        foreach (string id in AssetDatabase.FindAssets("t:Texture2D", new[] { Root + "Sprites" }))
+        {
+            var importer = AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(id)) as TextureImporter;
+            if (importer == null) continue;
+            importer.textureType = TextureImporterType.Sprite; importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = 32; importer.filterMode = FilterMode.Point; importer.mipmapEnabled = false;
+            importer.alphaIsTransparency = true; importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SaveAndReimport();
+        }
+        var material = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(Root + "Materials/SinFriccion.physicsMaterial2D");
+        if (material == null) { material = new PhysicsMaterial2D("Sin fricción"); AssetDatabase.CreateAsset(material, Root + "Materials/SinFriccion.physicsMaterial2D"); }
+        material.friction = 0; material.bounciness = 0;
+        var blink = Animation("Parpadeo", "Snake/Head", "Snake/HeadBlink", 1.4f, .1f);
+        var sparkle = Animation("BrilloFruta", "Food/Fruit", "Food/FruitSpark", .35f, .15f);
+        var head = Prefab("Cabeza", Sprite("Snake/Head"), ContactKind.Body, material, blink, true);
+        var body = Prefab("Segmento", Sprite("Snake/Body"), ContactKind.Body, material);
+        var food = Prefab("Comida", Sprite("Food/Fruit"), ContactKind.Food, material, sparkle);
+        var wall = Prefab("Pared", Sprite("Environment/Wall"), ContactKind.Wall, material);
+        var tileA = Tile("SueloA", Sprite("Environment/TileA")); var tileB = Tile("SueloB", Sprite("Environment/TileB"));
+        for (int i = 0; i < Scenes.Length; i++)
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var cameraObject = new GameObject("Main Camera"); cameraObject.tag = "MainCamera";
+            var camera = cameraObject.AddComponent<Camera>(); camera.orthographic = true; camera.orthographicSize = 6.75f;
+            camera.backgroundColor = SnakeScreen.Hex("102a2a"); camera.clearFlags = CameraClearFlags.SolidColor;
+            cameraObject.transform.position = new Vector3(0, 0, -10); cameraObject.AddComponent<AudioListener>();
+            var screen = new GameObject("Interfaz " + Scenes[i]).AddComponent<SnakeScreen>();
+            screen.headSprite = Sprite("Snake/Head"); screen.bodySprite = Sprite("Snake/Body");
+            screen.fruitSprite = Sprite("Food/Fruit"); screen.tileSprite = Sprite("Environment/TileA");
+            if (Scenes[i] == "Juego")
+            {
+                var controller = new GameObject("Controlador Snake").AddComponent<SnakeGame>();
+                controller.headPrefab = head; controller.bodyPrefab = body; controller.foodPrefab = food;
+                var gridObject = new GameObject("Grid del jardín", typeof(Grid));
+                gridObject.GetComponent<Grid>().cellSize = Vector3.one * SnakeGame.Cell;
+                gridObject.transform.position = new Vector3(-14 * SnakeGame.Cell, -.25f - 10 * SnakeGame.Cell, 0);
+                var floor = new GameObject("Suelo Tilemap", typeof(Tilemap), typeof(TilemapRenderer)); floor.transform.SetParent(gridObject.transform, false);
+                var map = floor.GetComponent<Tilemap>(); floor.GetComponent<TilemapRenderer>().sortingOrder = -10;
+                for (int y = 0; y < 20; y++) for (int x = 0; x < 28; x++) map.SetTile(new Vector3Int(x, y, 0), (x + y) % 2 == 0 ? tileA : tileB);
+                Wall(wall, "Borde izquierdo", new Vector2(-14.5f * SnakeGame.Cell, -.25f), new Vector2(SnakeGame.Cell, 22 * SnakeGame.Cell));
+                Wall(wall, "Borde derecho", new Vector2(14.5f * SnakeGame.Cell, -.25f), new Vector2(SnakeGame.Cell, 22 * SnakeGame.Cell));
+                Wall(wall, "Borde superior", new Vector2(0, -.25f + 10.5f * SnakeGame.Cell), new Vector2(28 * SnakeGame.Cell, SnakeGame.Cell));
+                Wall(wall, "Borde inferior", new Vector2(0, -.25f - 10.5f * SnakeGame.Cell), new Vector2(28 * SnakeGame.Cell, SnakeGame.Cell));
+            }
+            EditorSceneManager.SaveScene(scene, Root + "Scenes/" + Scenes[i] + ".unity");
+        }
+        var settings = new EditorBuildSettingsScene[3];
+        for (int i = 0; i < 3; i++) settings[i] = new EditorBuildSettingsScene(Root + "Scenes/" + Scenes[i] + ".unity", true);
+        EditorBuildSettings.scenes = settings;
+        PlayerSettings.productName = "Snake Trío · PGM-611"; PlayerSettings.companyName = "Equipo PGM-611";
+        PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
+        PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, "com.pgm611.snaketrio");
+        AssetDatabase.SaveAssets(); EditorSceneManager.OpenScene(Root + "Scenes/Menu.unity");
+        Debug.Log("SCENES_OK: tres escenas, sprites, prefabs, animaciones, Tilemap y colliders.");
+    }
+    static Tile Tile(string name, Sprite sprite)
+    {
+        var tile = AssetDatabase.LoadAssetAtPath<Tile>(Root + "Tiles/" + name + ".asset");
+        if (tile == null) { tile = ScriptableObject.CreateInstance<Tile>(); AssetDatabase.CreateAsset(tile, Root + "Tiles/" + name + ".asset"); }
+        tile.sprite = sprite; tile.colliderType = UnityEngine.Tilemaps.Tile.ColliderType.None;
+        tile.transform = Matrix4x4.Scale(Vector3.one * SnakeGame.Cell); EditorUtility.SetDirty(tile); return tile;
+    }
+    static AnimatorController Animation(string name, string first, string second, float hold, float blink)
+    {
+        var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Root + "Animations/" + name + ".anim");
+        if (clip == null) { clip = new AnimationClip(); AssetDatabase.CreateAsset(clip, Root + "Animations/" + name + ".anim"); }
+        AnimationUtility.SetObjectReferenceCurve(clip, new EditorCurveBinding { path = "", type = typeof(SpriteRenderer), propertyName = "m_Sprite" },
+            new[] { new ObjectReferenceKeyframe { time = 0, value = Sprite(first) }, new ObjectReferenceKeyframe { time = hold, value = Sprite(second) }, new ObjectReferenceKeyframe { time = hold + blink, value = Sprite(first) } });
+        var settings = AnimationUtility.GetAnimationClipSettings(clip); settings.loopTime = true; AnimationUtility.SetAnimationClipSettings(clip, settings);
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Root + "Animations/" + name + ".controller");
+        if (controller == null) { controller = AnimatorController.CreateAnimatorControllerAtPath(Root + "Animations/" + name + ".controller"); controller.AddMotion(clip); }
+        return controller;
+    }
+    static GameObject Prefab(string name, Sprite sprite, ContactKind kind, PhysicsMaterial2D material, AnimatorController animator = null, bool head = false)
+    {
+        var go = new GameObject(name); go.AddComponent<SpriteRenderer>().sprite = sprite;
+        go.GetComponent<SpriteRenderer>().sortingOrder = 5;
+        var box = go.AddComponent<BoxCollider2D>(); box.size = Vector2.one * .84f; box.sharedMaterial = material;
+        box.isTrigger = kind == ContactKind.Food;
+        var contact = go.AddComponent<SnakeContact2D>(); contact.kind = kind;
+        if (kind != ContactKind.Wall) go.transform.localScale = Vector3.one * SnakeGame.Cell;
+        if (head) { var rb = go.AddComponent<Rigidbody2D>(); rb.bodyType = RigidbodyType2D.Kinematic; rb.gravityScale = 0; rb.constraints = RigidbodyConstraints2D.FreezeRotation; }
+        if (animator != null) go.AddComponent<Animator>().runtimeAnimatorController = animator;
+        var result = PrefabUtility.SaveAsPrefabAsset(go, Root + "Prefabs/" + name + ".prefab"); UnityEngine.Object.DestroyImmediate(go); return result;
+    }
+    static void Wall(GameObject prefab, string name, Vector2 position, Vector2 size)
+    {
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab); go.name = name; go.transform.position = position;
+        var render = go.GetComponent<SpriteRenderer>(); render.drawMode = SpriteDrawMode.Tiled; render.size = size;
+        go.GetComponent<BoxCollider2D>().size = size;
+    }
+    [MenuItem("Snake Trío/Validar reglas")]
+    public static void Validate()
+    {
+        Action<bool, string> require = (ok, message) => { if (!ok) throw new BuildFailedException(message); };
+        var model = new SnakeModel(8, 6, 7);
+        require(!model.QueueDirection(Vector2Int.left), "No permitir giro inverso");
+        require(model.QueueDirection(Vector2Int.up) && !model.QueueDirection(Vector2Int.left), "Un giro por paso");
+        model.Advance(); require(model.Direction == Vector2Int.up, "Aplicar giro");
+        model = new SnakeModel(8, 6, 7); model.SetFoodForValidation(model.NextHead);
+        require(model.Advance() == StepOutcome.Ate && model.Score == 10 && model.Body.Count == 4, "Comer debe sumar y crecer");
+        require(!model.Body.Contains(model.Food), "No generar fruta dentro de la serpiente");
+        model = new SnakeModel(8, 6, 7); model.SetFoodForValidation(Vector2Int.zero);
+        for (int i = 0; i < 8 && !model.Finished; i++) model.Advance();
+        require(model.Finished && !model.Victory && model.EndReason.Contains("borde"), "Colisión con borde");
+        model = new SnakeModel(8, 6, 7); model.Body.Clear();
+        model.Body.AddRange(new[] { new Vector2Int(4,4), new Vector2Int(4,3), new Vector2Int(5,3), new Vector2Int(5,4), new Vector2Int(6,4) });
+        model.SetFoodForValidation(Vector2Int.zero); require(model.Advance() == StepOutcome.Lost, "Colisión con cuerpo");
+        model = new SnakeModel(8, 6, 7); model.Body.Clear();
+        model.Body.AddRange(new[] { new Vector2Int(4,4), new Vector2Int(4,3), new Vector2Int(5,3), new Vector2Int(5,4) });
+        model.SetFoodForValidation(Vector2Int.zero); require(model.Advance() == StepOutcome.Moved, "Permitir entrar en cola liberada");
+        model = new SnakeModel(6, 4, 7); model.Body.Clear(); model.Body.Add(new Vector2Int(4,2));
+        for (int y = 0; y < 4; y++) for (int x = 0; x < 6; x++)
+            if (new Vector2Int(x,y) != new Vector2Int(4,2) && new Vector2Int(x,y) != new Vector2Int(5,2)) model.Body.Add(new Vector2Int(x,y));
+        model.SetFoodForValidation(new Vector2Int(5,2)); require(model.Advance() == StepOutcome.Won && model.Body.Count == 24, "Victoria al completar tablero");
+        foreach (var scene in EditorBuildSettings.scenes) require(File.Exists(scene.path), "Escena ausente");
+        Debug.Log("RULES_OK: dirección, cola, cuerpo, borde, comida, puntaje y victoria.");
+    }
+    [MenuItem("Snake Trío/Compilar Windows")]
+    public static void BuildWindows()
+    {
+        Prepare(); Validate();
+        var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = Array.ConvertAll(Scenes, s => Root + "Scenes/" + s + ".unity"),
+            locationPathName = "Builds/Windows/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
+        if (report.summary.result != BuildResult.Succeeded) throw new BuildFailedException("Compilación Windows: " + report.summary.result);
+        Debug.Log("BUILD_OK: " + report.summary.totalSize + " bytes");
+    }
+}
