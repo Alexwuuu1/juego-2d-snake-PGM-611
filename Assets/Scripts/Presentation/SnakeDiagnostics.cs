@@ -20,7 +20,17 @@ namespace SnakeTrio
             bool smoke = Array.Exists(args, a => a == "--smoke-test");
             bool captureGame = Array.Exists(args, a => a == "--capture-game");
             bool captureResult = Array.Exists(args, a => a == "--capture-result");
-            if (smoke && FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).Length != 5) Fail("Botones del menú");
+            if (smoke)
+            {
+                var play = GameObject.Find("JUGAR");
+                if (play == null || play.GetComponent<UnityEngine.UI.Button>() == null) Fail("Acción JUGAR ausente");
+                var sound = SnakeAudio.Instance;
+                bool muted = sound.Muted; sound.ToggleMute();
+                if (sound.Muted == muted) Fail("Alternar silencio");
+                sound.ToggleMute();
+                if (SnakeSession.Clock(125.9f) != "02:05") Fail("Formato del cronómetro");
+                Debug.Log("SMOKE_SETTINGS_OK: sonido y formato de tiempo.");
+            }
             if (smoke || captureGame) SceneManager.LoadScene("Juego");
             if (captureResult) { SnakeSession.LastScore = 120; SnakeSession.LastFruits = 12; SnakeSession.Reason = "Chocaste contra el borde"; SceneManager.LoadScene("Resultado"); }
             yield return new WaitForSecondsRealtime(.8f);
@@ -31,8 +41,10 @@ namespace SnakeTrio
                 if (game.Segments[0].GetComponent<Rigidbody2D>() == null || game.Segments[0].GetComponent<Collider2D>() == null) Fail("Componentes físicos");
                 if (!game.HasFoodColliderAt(game.Model.Food)) Fail("Collider2D de comida");
                 game.TogglePause(); if (!game.Paused) Fail("Pausa");
-                var headBefore = game.Model.Body[0]; yield return new WaitForSecondsRealtime(.3f);
-                if (game.Model.Body[0] != headBefore) Fail("La pausa no detuvo el movimiento");
+                var headBefore = game.Model.Body[0]; float timeBefore = game.PlayTime; yield return new WaitForSecondsRealtime(.3f);
+                if (game.Model.Body[0] != headBefore || game.PlayTime != timeBefore) Fail("La pausa no detuvo el movimiento");
+                game.TogglePause(); if (game.ReadyTime < .9f) Fail("Cuenta de reanudación");
+                game.PauseForFocusLoss(); if (!game.Paused) Fail("Pausa al perder foco");
                 game.TogglePause(); game.PlaceFoodForValidation(game.Model.NextHead);
                 if (game.Step() != StepOutcome.Ate || game.Model.Score != 10 || game.Segments.Count != 4) Fail("Comida y crecimiento");
                 Debug.Log("SMOKE_GAME_OK: sprites, rigidbody, colliders, pausa, comida, crecimiento y puntaje.");

@@ -6,19 +6,39 @@ namespace SnakeTrio
     {
         public static SnakeAudio Instance;
         AudioSource music, effects;
+        AudioClip clickClip, eatClip, hitClip, winClip;
+        public bool Muted => SnakePreferences.Muted;
+        public float MusicVolume => SnakePreferences.MusicVolume;
+        public float EffectsVolume => SnakePreferences.EffectsVolume;
         void Awake()
         {
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this; DontDestroyOnLoad(gameObject);
             music = gameObject.AddComponent<AudioSource>();
             effects = gameObject.AddComponent<AudioSource>();
-            music.clip = Melody(); music.loop = true; music.volume = .25f; music.Play();
-            effects.volume = .32f;
+            music.clip = Melody(); music.loop = true;
+            clickClip = Tone(540, .07f); eatClip = Tone(940, .14f, 1350);
+            hitClip = Tone(210, .28f, 65); winClip = Tone(660, .45f, 1320);
+            ApplySettings(); music.Play();
         }
-        public void Click() { effects.PlayOneShot(Tone(540, .07f)); }
-        public void Eat() { effects.PlayOneShot(Tone(940, .14f, 1350)); }
-        public void Hit() { effects.PlayOneShot(Tone(210, .28f, 65)); }
-        public void Win() { effects.PlayOneShot(Tone(660, .45f, 1320)); }
+        public void SetMusicVolume(float value) { SnakePreferences.MusicVolume = value; ApplySettings(); }
+        public void SetEffectsVolume(float value) { SnakePreferences.EffectsVolume = value; ApplySettings(); }
+        public void ToggleMute() { SnakePreferences.Muted = !Muted; ApplySettings(); }
+        void ApplySettings()
+        {
+            music.volume = MusicVolume; effects.volume = EffectsVolume;
+            music.mute = effects.mute = Muted;
+        }
+        public void Click() { effects.PlayOneShot(clickClip); }
+        public void Eat() { effects.PlayOneShot(eatClip); }
+        public void Hit() { effects.PlayOneShot(hitClip); }
+        public void Win() { effects.PlayOneShot(winClip); }
+        void OnDestroy()
+        {
+            if (Instance != this) return;
+            Destroy(music.clip); Destroy(clickClip); Destroy(eatClip); Destroy(hitClip); Destroy(winClip);
+            Instance = null;
+        }
         static AudioClip Tone(float start, float duration, float end = 0)
         {
             const int rate = 22050; var samples = new float[(int)(rate * duration)];
