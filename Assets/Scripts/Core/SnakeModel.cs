@@ -21,6 +21,7 @@ namespace SnakeTrio
         readonly System.Random random;
         Vector2Int nextDirection = Vector2Int.right;
         bool turnQueued;
+        public Vector2Int NextHead => Body[0] + nextDirection;
 
         public SnakeModel(int width = 28, int height = 20, int seed = -1)
         {
@@ -39,13 +40,14 @@ namespace SnakeTrio
             nextDirection = candidate; turnQueued = true; return true;
         }
 
-        public StepOutcome Advance()
+        public StepOutcome Advance(bool physicsBlocked = false, string physicsReason = "")
         {
             if (Finished) return Victory ? StepOutcome.Won : StepOutcome.Lost;
             Direction = nextDirection; turnQueued = false;
             var next = Body[0] + Direction;
             if (next.x < 0 || next.x >= Width || next.y < 0 || next.y >= Height)
                 return Lose("Chocaste contra el borde");
+            if (physicsBlocked) return Lose(physicsReason);
             bool grows = next == Food;
             // Al avanzar sin comer, la cola se libera: entrar en esa celda es válido.
             int occupied = grows ? Body.Count : Body.Count - 1;
