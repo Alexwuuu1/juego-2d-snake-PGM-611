@@ -10,6 +10,8 @@ namespace SnakeTrio
         public GameObject headPrefab, bodyPrefab, foodPrefab;
         public SnakeModel Model { get; private set; }
         public bool Paused { get; private set; }
+        public float PlayTime { get; private set; }
+        public int Moves { get; private set; }
         public float ReadyTime { get; private set; } = 1.5f;
         public static readonly float Cell = .45f;
         public static readonly Vector2 Center = new Vector2(0, -.25f);
@@ -28,9 +30,9 @@ namespace SnakeTrio
         }
         void Update()
         {
-            if (Model == null || ending) return;
+            if (Model == null || ending || screen.BlocksGameplayInput) return;
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)) TogglePause();
-            if (Paused || ReadyTime > 0) return;
+            if (Paused) return;
             var requested = ReadDirection(); if (requested != Vector2Int.zero) Model.QueueDirection(requested);
         }
         public static Vector2Int ReadDirection()
@@ -45,15 +47,31 @@ namespace SnakeTrio
         {
             if (Model == null || Paused || ending) return;
             if (ReadyTime > 0) { ReadyTime = Mathf.Max(0, ReadyTime - Time.fixedDeltaTime); return; }
-            elapsed += Time.fixedDeltaTime;
+            PlayTime += Time.fixedDeltaTime; elapsed += Time.fixedDeltaTime;
             if (elapsed < SnakeSession.Speeds[SnakeSession.Difficulty]) return;
             elapsed -= SnakeSession.Speeds[SnakeSession.Difficulty]; Step();
         }
-        public void TogglePause()
-        { if (ending) return; Paused = !Paused; SnakeAudio.Instance.Click(); screen.ShowPause(Paused); }
+        public void TogglePause() { SetPaused(!Paused); }
+        public void SetPaused(bool paused)
+        {
+            if (ending || Model == null || Paused == paused) return;
+            Paused = paused;
+            if (!paused) ReadyTime = Mathf.Max(ReadyTime, 1f);
+            screen.ShowPause(paused);
+        }
+        public void RestartGame()
+        {
+            if (ending) return;
+            SceneManager.LoadScene("Juego");
+        }
+        public void ReturnToMenu() { SceneManager.LoadScene("Menu"); }
+        public void PauseForFocusLoss() { SetPaused(true); }
+        void OnApplicationFocus(bool focus) { if (!focus) PauseForFocusLoss(); }
+        void OnApplicationPause(bool paused) { if (paused) PauseForFocusLoss(); }
 
         public StepOutcome Step()
         {
+            if (ending || Model == null) return Model != null && Model.Victory ? StepOutcome.Won : StepOutcome.Lost;
             Physics2D.SyncTransforms();
             // Los Collider2D de paredes y segmentos participan realmente en la derrota.
             // Se consulta antes de mover la cabeza; se excluye la cola que se libera.
@@ -74,16 +92,15 @@ namespace SnakeTrio
                 }
             }
             var outcome = Model.Advance(blocked, reason);
+            if (outcome == StepOutcome.Moved || outcome == StepOutcome.Ate || outcome == StepOutcome.Won) Moves++;
             RefreshSprites();
             if (outcome == StepOutcome.Ate) SnakeAudio.Instance.Eat();
             if (outcome == StepOutcome.Lost || outcome == StepOutcome.Won)
             {
                 ending = true;
                 if (outcome == StepOutcome.Won) SnakeAudio.Instance.Win(); else SnakeAudio.Instance.Hit();
-                SnakeSession.LastScore = Model.Score; SnakeSession.LastFruits = Model.Fruits;
-                SnakeSession.Won = Model.Victory; SnakeSession.Reason = Model.EndReason;
-                PlayerPrefs.SetInt("SnakeTrio_Record", Mathf.Max(Model.Score, PlayerPrefs.GetInt("SnakeTrio_Record", 0)));
-                PlayerPrefs.Save(); StartCoroutine(Finish());
+                SnakeSession.SaveResult(Model, PlayTime, Moves);
+                StartCoroutine(Finish());
             }
             screen.RefreshScore(); return outcome;
         }

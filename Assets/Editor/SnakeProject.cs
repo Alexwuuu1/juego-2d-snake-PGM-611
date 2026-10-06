@@ -78,6 +78,7 @@ public static class SnakeProject
         for (int i = 0; i < 3; i++) settings[i] = new EditorBuildSettingsScene(Root + "Scenes/" + Scenes[i] + ".unity", true);
         EditorBuildSettings.scenes = settings;
         PlayerSettings.productName = "Snake Trío · PGM-611"; PlayerSettings.companyName = "Equipo PGM-611";
+        PlayerSettings.bundleVersion = "1.1.0";
         PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
@@ -148,6 +149,10 @@ public static class SnakeProject
             if (new Vector2Int(x,y) != new Vector2Int(4,2) && new Vector2Int(x,y) != new Vector2Int(5,2)) model.Body.Add(new Vector2Int(x,y));
         model.SetFoodForValidation(new Vector2Int(5,2)); require(model.Advance() == StepOutcome.Won && model.Body.Count == 24, "Victoria al completar tablero");
         foreach (var scene in EditorBuildSettings.scenes) require(File.Exists(scene.path), "Escena ausente");
+        require(SnakeSession.Clock(0) == "00:00" && SnakeSession.Clock(125.9f) == "02:05", "Cronómetro");
+        model = new SnakeModel(8, 6, 7);
+        require(model.Advance(true, "Choque físico") == StepOutcome.Lost && model.EndReason == "Choque físico", "Colisión Physics2D");
+        int count = model.Body.Count; require(model.Advance() == StepOutcome.Lost && model.Body.Count == count, "Finalización estable");
         Debug.Log("RULES_OK: dirección, cola, cuerpo, borde, comida, puntaje y victoria.");
     }
     [MenuItem("Snake Trío/Compilar Windows")]
@@ -155,7 +160,7 @@ public static class SnakeProject
     {
         Prepare(); Validate();
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = Array.ConvertAll(Scenes, s => Root + "Scenes/" + s + ".unity"),
-            locationPathName = "Builds/Windows/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
+            locationPathName = "Builds/Windows-v1.1/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
         if (report.summary.result != BuildResult.Succeeded) throw new BuildFailedException("Compilación Windows: " + report.summary.result);
         Debug.Log("BUILD_OK: " + report.summary.totalSize + " bytes");
     }

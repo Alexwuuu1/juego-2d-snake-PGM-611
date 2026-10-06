@@ -82,9 +82,27 @@ namespace SnakeTrio
 
     public static class SnakeSession
     {
-        public static int Difficulty = 1;
+        public static int Difficulty { get => SnakePreferences.Difficulty; set => SnakePreferences.Difficulty = value; }
         public static int LastScore, LastFruits;
-        public static bool Won;
+        public static bool Won, NewRecord;
+        public static float LastDuration;
+        public static int LastLength, LastMoves, LastDifficulty;
+        public static int Record(int difficulty) => PlayerPrefs.GetInt("SnakeTrio_Record_" + Mathf.Clamp(difficulty, 0, 2), 0);
+        public static string Clock(float seconds)
+        {
+            int whole = Mathf.Max(0, Mathf.FloorToInt(seconds));
+            return (whole / 60).ToString("00") + ":" + (whole % 60).ToString("00");
+        }
+        public static void SaveResult(SnakeModel model, float duration, int moves)
+        {
+            LastScore = model.Score; LastFruits = model.Fruits; LastLength = model.Body.Count;
+            LastDuration = duration; LastMoves = moves; LastDifficulty = Difficulty;
+            Won = model.Victory; Reason = model.EndReason;
+            NewRecord = model.Score > Record(Difficulty);
+            PlayerPrefs.SetInt("SnakeTrio_Record_" + Difficulty, Mathf.Max(model.Score, Record(Difficulty)));
+            PlayerPrefs.SetInt("SnakeTrio_Record", Mathf.Max(model.Score, PlayerPrefs.GetInt("SnakeTrio_Record", 0)));
+            PlayerPrefs.Save();
+        }
         public static string Reason = "";
         public static float[] Speeds = { .19f, .135f, .095f };
         public static string[] DifficultyNames = { "TRANQUILO", "CLÁSICO", "RÁPIDO" };

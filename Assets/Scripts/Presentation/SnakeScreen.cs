@@ -13,8 +13,14 @@ namespace SnakeTrio
         static readonly Color Mint = Hex("82edb9"), Gold = Hex("ffc75d"), Light = Hex("eef6ef"), Muted = Hex("93b3a7");
         RectTransform canvas;
         Font font;
-        Text scoreText, fruitText, readyText;
-        GameObject pausePanel, readyPanel;
+        Text scoreText, fruitText, readyText, difficultyText, recordText, muteText, timeText, lengthText;
+        Button[] difficultyButtons = new Button[3];
+        GameObject pausePanel, readyPanel, modal;
+        GameObject previousSelection;
+        int modalInputFrame = -1;
+        public bool BlocksGameplayInput => ModalOpen || modalInputFrame == Time.frameCount;
+        public bool ModalOpen => modal != null;
+        public string ModalName => modal != null ? modal.name : "";
         SnakeGame game;
 
         void Awake()
@@ -33,94 +39,224 @@ namespace SnakeTrio
         void Update()
         {
             string scene = SceneManager.GetActiveScene().name;
-            if (Input.GetKeyDown(KeyCode.Return) && scene != "Juego") Play();
-            if (Input.GetKeyDown(KeyCode.R) && scene == "Resultado") Play();
+            if (Input.GetKeyDown(KeyCode.M)) { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }
+            if (Input.GetKeyDown(KeyCode.F1) && scene != "Juego" && !ModalOpen) OpenHelp();
+            if (Input.GetKeyDown(KeyCode.Escape) && ModalOpen) { modalInputFrame = Time.frameCount; CloseModal(); return; }
+            if (Input.GetKeyDown(KeyCode.Return) && scene != "Juego" && !ModalOpen
+                && EventSystem.current.currentSelectedGameObject == null) Play();
+            if (Input.GetKeyDown(KeyCode.R) && scene == "Resultado" && !ModalOpen) Play();
             if (Input.GetKeyDown(KeyCode.F12))
             {
                 string dir = System.IO.Path.GetDirectoryName(Application.dataPath);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(dir, "SnakeTrio-Captura.png"));
             }
+            if (game != null && game.Model != null)
+            {
+                timeText.text = SnakeSession.Clock(game.PlayTime);
+                lengthText.text = game.Model.Body.Count + " / " + (game.Model.Width * game.Model.Height);
+            }
             if (game != null && readyPanel != null)
             { readyPanel.SetActive(game.ReadyTime > 0 && !game.Paused);
               readyText.text = "PREPÁRATE  ·  " + Mathf.CeilToInt(game.ReadyTime); }
         }
-        public void Play() { SceneManager.LoadScene("Juego"); }
+        public void Play() { if (!ModalOpen) SceneManager.LoadScene("Juego"); }
         public void RefreshScore()
         {
             if (game == null || game.Model == null) return;
             scoreText.text = game.Model.Score.ToString("000"); fruitText.text = "FRUTAS  " + game.Model.Fruits;
         }
-        public void ShowPause(bool paused) { pausePanel.SetActive(paused); }
+        public void ShowPause(bool paused)
+        {
+            if (!paused) CloseModal();
+            pausePanel.SetActive(paused);
+            EventSystem.current.SetSelectedGameObject(paused ? GameObject.Find("CONTINUAR") : null);
+        }
 
         void BuildMenu()
         {
             Box(canvas, "Fondo", 0, 0, 1280, 720, Background);
-            Label(canvas, "PGM-611  /  VIDEOJUEGO 2D", 72, 627, 520, 28, 16, Mint);
-            Label(canvas, "SNAKE\nTRÍO", 68, 416, 520, 186, 82, Light, FontStyle.Bold);
-            Box(canvas, "Acento", 74, 403, 85, 4, Gold);
-            Label(canvas, "Un jardín. Una serpiente.\n¿Cuánto puedes crecer?", 74, 319, 495, 66, 24, Muted);
-            Label(canvas, "ELIGE TU RITMO", 74, 270, 450, 25, 13, Muted);
+            Label(canvas, "SNAKE TRÍO", 72, 649, 340, 35, 22, Light, FontStyle.Bold);
+            Label(canvas, "PGM-611    /    ARCADE 2D", 912, 653, 300, 27, 13, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
+            Box(canvas, "Línea de cabecera", 74, 630, 1132, 1, Hex("31504a"));
+            Label(canvas, "UN JARDÍN POR RECORRER", 74, 548, 520, 27, 14, Mint, FontStyle.Bold);
+            Label(canvas, "SNAKE", 68, 449, 548, 95, 82, Light, FontStyle.Bold);
+            Label(canvas, "Encuentra tu ritmo. Come, crece y supera\ntu mejor partida.", 74, 378, 510, 65, 22, Muted);
+            Label(canvas, "DIFICULTAD", 74, 339, 480, 23, 12, Muted, FontStyle.Bold);
             for (int i = 0; i < 3; i++)
             {
                 int index = i;
-                var button = Button(canvas, "Dificultad " + i, SnakeSession.DifficultyNames[i], 74 + i * 159, 220, 149, 39,
-                    SnakeSession.Difficulty == i ? Mint : PanelColor, SnakeSession.Difficulty == i ? Background : Light,
-                    () => { SnakeSession.Difficulty = index; SceneManager.LoadScene("Menu"); });
+                difficultyButtons[i] = Button(canvas, "Dificultad " + i, SnakeSession.DifficultyNames[i],
+                    74 + i * 157, 282, 147, 45, PanelColor, Light, () => SelectDifficulty(index), 13);
             }
-            Button(canvas, "JUGAR", "JUGAR  →", 74, 143, 302, 58, Mint, Background, Play, 22);
-            Button(canvas, "SALIR", "SALIR", 393, 143, 148, 58, PanelColor, Light, Application.Quit, 18);
-            Label(canvas, "Flechas para moverte  ·  Enter para empezar", 74, 103, 525, 23, 14, Muted);
-            MiniBoard(canvas, 655, 187, 28);
-            Label(canvas, "COME. CRECE. EVITA LOS BORDES.", 652, 136, 530, 30, 15, Gold);
-            Label(canvas, "RÉCORD LOCAL  " + PlayerPrefs.GetInt("SnakeTrio_Record", 0).ToString("000"), 652, 107, 530, 27, 17, Light);
+            difficultyText = Label(canvas, "", 74, 245, 495, 25, 14, Muted);
+            Button(canvas, "JUGAR", "JUGAR   →", 74, 158, 312, 62, Mint, Background, Play, 22);
+            Button(canvas, "SALIR", "SALIR", 404, 158, 131, 62, PanelColor, Light, Application.Quit, 16);
+            Label(canvas, "Flechas para moverte  ·  Enter para empezar", 74, 117, 525, 24, 14, Muted);
+            var card = Box(canvas, "Tarjeta de jardín", 650, 171, 557, 437, PanelColor); SnakeTheme.Round(card);
+            Label(canvas, "EL JARDÍN", 684, 574, 200, 26, 12, Mint, FontStyle.Bold);
+            Label(canvas, "28 × 20 CELDAS", 978, 574, 194, 26, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
+            MiniBoard(canvas, 684, 195, 26);
+            recordText = Label(canvas, "", 650, 117, 557, 31, 16, Gold, FontStyle.Bold, TextAnchor.MiddleCenter);
+            SelectDifficulty(SnakeSession.Difficulty);
             Credits(canvas);
+        }
+        public void SelectDifficulty(int index)
+        {
+            SnakeSession.Difficulty = index;
+            for (int i = 0; i < difficultyButtons.Length; i++)
+            {
+                bool selected = i == SnakeSession.Difficulty;
+                difficultyButtons[i].GetComponent<Image>().color = selected ? Mint : PanelColor;
+                difficultyButtons[i].GetComponentInChildren<Text>().color = selected ? Background : Light;
+            }
+            string[] descriptions = { "Más tiempo para planear cada giro.", "El equilibrio entre ritmo y precisión.", "Reflejos rápidos. Cada movimiento cuenta." };
+            difficultyText.text = descriptions[SnakeSession.Difficulty];
+            recordText.text = "RÉCORD  /  " + SnakeSession.DifficultyNames[SnakeSession.Difficulty] + "    " + SnakeSession.Record(SnakeSession.Difficulty).ToString("000");
         }
         void BuildGame()
         {
             Box(canvas, "Barra superior", 0, 610, 1280, 110, Background);
-            Label(canvas, "SNAKE TRÍO", 48, 650, 300, 36, 27, Light, FontStyle.Bold);
-            Label(canvas, "PGM-611  ·  " + SnakeSession.DifficultyNames[SnakeSession.Difficulty], 49, 623, 310, 22, 13, Muted);
-            Label(canvas, "PUNTOS", 492, 671, 120, 20, 12, Muted);
-            scoreText = Label(canvas, "000", 492, 624, 150, 47, 36, Mint, FontStyle.Bold);
-            fruitText = Label(canvas, "FRUTAS  0", 680, 641, 160, 28, 16, Gold);
+            Label(canvas, "SNAKE TRÍO", 48, 650, 320, 36, 27, Light, FontStyle.Bold);
+            Label(canvas, "PGM-611   /   " + SnakeSession.DifficultyNames[SnakeSession.Difficulty], 49, 623, 330, 22, 13, Muted);
+            MetricCard(canvas, "PUNTOS", "000", 451, 625, 174, out scoreText, Mint);
+            MetricCard(canvas, "TIEMPO", "00:00", 641, 625, 174, out timeText, Light);
+            fruitText = Label(canvas, "FRUTAS  0", 838, 637, 169, 30, 16, Gold, FontStyle.Bold);
             Button(canvas, "PAUSA", "PAUSA  /  ESC", 1030, 638, 201, 45, PanelColor, Light, game.TogglePause, 14);
-            Label(canvas, "01", 56, 514, 200, 65, 48, Mint, FontStyle.Bold);
-            Label(canvas, "BUSCA LA\nFRUTA DORADA", 58, 447, 215, 60, 21, Light, FontStyle.Bold);
-            Label(canvas, "+10 puntos\npor cada fruta.\n\nLa serpiente crece\ncon cada bocado.", 58, 263, 210, 161, 18, Muted);
-            Label(canvas, "NO CHOQUES", 1032, 515, 210, 31, 18, Gold, FontStyle.Bold);
-            Label(canvas, "Evita los bordes\ny tu propio cuerpo.\n\nFLECHAS\nCambiar dirección\n\nESC / P\nPausa", 1032, 271, 206, 221, 17, Muted);
-            Label(canvas, "RÉCORD\n" + PlayerPrefs.GetInt("SnakeTrio_Record", 0).ToString("000"), 1032, 170, 190, 75, 23, Mint);
-            Label(canvas, "UN GIRO POR PASO  ·  NO PUEDES GIRAR DIRECTAMENTE HACIA ATRÁS", 306, 57, 680, 24, 12, Muted);
-            readyPanel = Box(canvas, "Cuenta de inicio", 393, 320, 493, 73, Background).gameObject;
+            Label(canvas, "OBJETIVO", 52, 519, 210, 31, 13, Mint, FontStyle.Bold);
+            Label(canvas, "LLENA\nEL JARDÍN", 52, 430, 216, 78, 27, Light, FontStyle.Bold);
+            Label(canvas, "+10 puntos por fruta.\nCrece sin chocar con\nlos bordes o tu cuerpo.", 52, 321, 216, 91, 17, Muted);
+            MetricCard(canvas, "LONGITUD", "3 / 560", 52, 209, 205, out lengthText, Mint);
+            Label(canvas, "TU MEJOR PARTIDA", 1032, 507, 204, 30, 12, Muted, FontStyle.Bold);
+            Label(canvas, SnakeSession.Record(SnakeSession.Difficulty).ToString("000"), 1032, 442, 200, 60, 44, Mint, FontStyle.Bold);
+            Box(canvas, "Divisor lateral", 1032, 416, 194, 1, Hex("31504a"));
+            Label(canvas, "FLECHAS\nCambiar dirección\n\nESC / P\nPausa\n\nM\nSilenciar sonido", 1032, 199, 206, 196, 16, Muted);
+            Label(canvas, "UN GIRO POR PASO   /   PLANEA TU SIGUIENTE MOVIMIENTO", 306, 54, 680, 27, 12, Muted, FontStyle.Normal, TextAnchor.MiddleCenter);
+            readyPanel = Box(canvas, "Cuenta de inicio", 393, 320, 493, 73, Background).gameObject; SnakeTheme.Round(readyPanel.GetComponent<Image>());
             readyText = Label(readyPanel.transform, "PREPÁRATE", 0, 0, 493, 73, 24, Mint, FontStyle.Bold, TextAnchor.MiddleCenter);
-            pausePanel = Box(canvas, "Pausa", 0, 0, 1280, 720, new Color(0, .08f, .08f, .89f)).gameObject;
-            Label(pausePanel.transform, "RESPIRA UN MOMENTO", 310, 433, 660, 66, 40, Light, FontStyle.Bold, TextAnchor.MiddleCenter);
-            Label(pausePanel.transform, "La partida está en pausa", 370, 380, 540, 37, 21, Muted, FontStyle.Normal, TextAnchor.MiddleCenter);
-            Button(pausePanel.transform, "CONTINUAR", "CONTINUAR", 477, 292, 326, 61, Mint, Background, game.TogglePause, 22);
-            Button(pausePanel.transform, "MENÚ", "VOLVER AL MENÚ", 477, 222, 326, 49, PanelColor, Light, () => SceneManager.LoadScene("Menu"), 17);
+            pausePanel = Box(canvas, "Pausa", 0, 0, 1280, 720, new Color(0, .06f, .06f, .92f)).gameObject;
+            pausePanel.GetComponent<Image>().raycastTarget = true;
+            var card = Box(pausePanel.transform, "Tarjeta de pausa", 380, 137, 520, 452, PanelColor); SnakeTheme.Round(card);
+            Label(card.transform, "PARTIDA EN PAUSA", 36, 346, 448, 58, 30, Light, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Label(card.transform, "Tómate un momento. El jardín espera.", 36, 302, 448, 38, 17, Muted, FontStyle.Normal, TextAnchor.MiddleCenter);
+            Button(card.transform, "CONTINUAR", "CONTINUAR", 36, 223, 448, 55, Mint, Background, game.TogglePause, 18);
+            Button(card.transform, "REINICIAR", "REINICIAR PARTIDA", 36, 164, 448, 46, Background, Light,
+                () => Confirm("¿EMPEZAR DE NUEVO?", "Esta partida se perderá. El récord se conserva.", game.RestartGame), 15);
+            Button(card.transform, "AJUSTES PAUSA", "AJUSTES DE SONIDO", 36, 108, 448, 46, Background, Light, OpenSettings, 15);
+            Button(card.transform, "MENÚ", "VOLVER AL MENÚ", 36, 52, 448, 46, Background, Light,
+                () => Confirm("¿VOLVER AL MENÚ?", "Esta partida se perderá. El récord se conserva.", game.ReturnToMenu), 15);
             pausePanel.SetActive(false);
+        }
+        void MetricCard(Transform parent, string title, string value, float x, float y, float width, out Text metric, Color color)
+        {
+            var card = Box(parent, "Tarjeta " + title, x, y, width, 79, PanelColor); SnakeTheme.Round(card);
+            Label(card.transform, title, 17, 49, width - 34, 20, 11, Muted, FontStyle.Bold);
+            metric = Label(card.transform, value, 17, 7, width - 34, 41, 29, color, FontStyle.Bold);
+        }
+        public void Confirm(string title, string description, Action accepted)
+        {
+            var panel = OpenModal("Confirmación", title, description);
+            Label(panel, "¿Quieres continuar?", 36, 202, 568, 55, 24, Light);
+            Button(panel, "CONFIRMAR", "SÍ, CONTINUAR", 36, 130, 568, 50, Gold, Background,
+                () => { CloseModal(); accepted(); }, 17);
         }
         void BuildResult()
         {
             Box(canvas, "Fondo", 0, 0, 1280, 720, Background);
-            Label(canvas, "SNAKE TRÍO  /  RESULTADO", 73, 628, 550, 30, 16, Mint);
-            Label(canvas, SnakeSession.Won ? "¡JARDÍN\nCOMPLETO!" : "HASTA AQUÍ\nLLEGASTE", 69, 431, 645, 176, 61, Light, FontStyle.Bold);
-            Label(canvas, SnakeSession.Reason, 76, 379, 610, 42, 22, Gold);
-            Label(canvas, "PUNTOS", 76, 327, 200, 24, 13, Muted);
-            Label(canvas, SnakeSession.LastScore.ToString("000"), 73, 239, 285, 85, 70, Mint, FontStyle.Bold);
-            Label(canvas, SnakeSession.LastFruits + " FRUTAS  ·  RÉCORD " + PlayerPrefs.GetInt("SnakeTrio_Record", 0), 77, 209, 510, 28, 17, Muted);
-            Button(canvas, "REINTENTAR", "VOLVER A JUGAR", 76, 122, 307, 60, Mint, Background, Play, 20);
-            Button(canvas, "MENÚ", "MENÚ", 401, 122, 164, 60, PanelColor, Light, () => SceneManager.LoadScene("Menu"), 18);
-            MiniBoard(canvas, 697, 198, 24);
-            Label(canvas, "CADA PARTIDA ES UN NUEVO COMIENZO.", 697, 137, 520, 40, 14, Gold);
+            Label(canvas, "SNAKE TRÍO    /    RESULTADO", 74, 649, 650, 35, 17, Mint, FontStyle.Bold);
+            Box(canvas, "Divisor", 74, 630, 1132, 1, Hex("31504a"));
+            Label(canvas, SnakeSession.Won ? "JARDÍN COMPLETO" : "BUENA PARTIDA", 69, 499, 1138, 90, 58, Light, FontStyle.Bold);
+            Label(canvas, SnakeSession.Reason, 75, 452, 1100, 36, 21, Muted);
+            Label(canvas, SnakeSession.NewRecord ? "NUEVO RÉCORD PERSONAL" : "TU PRÓXIMO RÉCORD TE ESPERA", 75, 405, 1130, 28, 14, Gold, FontStyle.Bold);
+            Text value;
+            MetricCard(canvas, "PUNTOS", SnakeSession.LastScore.ToString("000"), 74, 275, 267, out value, Mint);
+            MetricCard(canvas, "FRUTAS", SnakeSession.LastFruits.ToString(), 359, 275, 267, out value, Gold);
+            MetricCard(canvas, "TIEMPO", SnakeSession.Clock(SnakeSession.LastDuration), 644, 275, 267, out value, Light);
+            MetricCard(canvas, "LONGITUD", SnakeSession.LastLength.ToString(), 929, 275, 277, out value, Light);
+            Label(canvas, SnakeSession.DifficultyNames[SnakeSession.LastDifficulty] + "   /   RÉCORD " + SnakeSession.Record(SnakeSession.LastDifficulty).ToString("000")
+                + "   /   " + SnakeSession.LastMoves + " MOVIMIENTOS", 75, 221, 1130, 31, 15, Muted);
+            Button(canvas, "REINTENTAR", "VOLVER A JUGAR   →", 74, 121, 395, 64, Mint, Background, Play, 20);
+            Button(canvas, "MENÚ", "IR AL MENÚ", 487, 121, 220, 64, PanelColor, Light, () => SceneManager.LoadScene("Menu"), 16);
+            Label(canvas, "R para reintentar", 918, 131, 288, 38, 14, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
             Credits(canvas);
         }
         void Credits(Transform parent)
         {
-            Box(parent, "Divisor", 73, 75, 1134, 1, Hex("31504a"));
-            Label(parent, "ALEJANDRO VILLALPANDO ROJAS\n@Alexwuuu1", 74, 20, 371, 45, 12, Muted);
-            Label(parent, "GALILEA ALISON LLUSCO ASISTIRI\n@Galileya", 474, 20, 371, 45, 12, Muted);
-            Label(parent, "CRISTOPHER IORI LAZCANO GUTIERREZ\n@Crisshubb", 856, 20, 371, 45, 12, Muted);
+            Button(parent, "CRÉDITOS", "CRÉDITOS", 74, 48, 138, 37, PanelColor, Light, OpenCredits, 12);
+            Button(parent, "AJUSTES", "AJUSTES", 225, 48, 138, 37, PanelColor, Light, OpenSettings, 12);
+            Button(parent, "AYUDA", "CÓMO JUGAR", 376, 48, 159, 37, PanelColor, Light, OpenHelp, 12);
+            Label(parent, "PROYECTO ACADÉMICO   /   PGM-611", 807, 48, 400, 37, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
+        }
+        RectTransform OpenModal(string name, string title, string subtitle)
+        {
+            CloseModal(); previousSelection = EventSystem.current.currentSelectedGameObject;
+            modal = Box(canvas, name, 0, 0, 1280, 720, new Color(0, .06f, .06f, .92f)).gameObject;
+            modal.GetComponent<Image>().raycastTarget = true;
+            var panel = Box(modal.transform, "Tarjeta", 320, 134, 640, 452, PanelColor); SnakeTheme.Round(panel);
+            Label(panel.transform, title, 36, 362, 568, 48, 30, Light, FontStyle.Bold);
+            Label(panel.transform, subtitle, 36, 316, 568, 39, 16, Muted);
+            var close = Button(panel.transform, "CERRAR", "VOLVER", 36, 28, 568, 46, Mint, Background, CloseModal, 16);
+            EventSystem.current.SetSelectedGameObject(close.gameObject);
+            // El teclado solo navega por la tarjeta activa.
+            foreach (var selectable in canvas.GetComponentsInChildren<Selectable>())
+                if (!selectable.transform.IsChildOf(modal.transform)) selectable.interactable = false;
+            return panel.rectTransform;
+        }
+        public void CloseModal()
+        {
+            if (modal == null) return;
+            modal.SetActive(false); Destroy(modal); modal = null;
+            foreach (var selectable in canvas.GetComponentsInChildren<Selectable>()) selectable.interactable = true;
+            EventSystem.current.SetSelectedGameObject(previousSelection);
+        }
+        public void OpenHelp()
+        {
+            var panel = OpenModal("Ayuda", "CÓMO JUGAR", "Una fruta, diez puntos. Llena el jardín para ganar.");
+            Label(panel, "FLECHAS", 36, 254, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "Cambia la dirección de la serpiente.", 210, 254, 394, 27, 16, Light);
+            Label(panel, "ESC / P", 36, 210, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "Pausa o continúa la partida.", 210, 210, 394, 27, 16, Light);
+            Label(panel, "M", 36, 166, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "Silencia o reactiva el sonido.", 210, 166, 394, 27, 16, Light);
+            Label(panel, "Evita los bordes y tu propio cuerpo. No puedes girar\ndirectamente hacia atrás. Elige un giro por paso.", 36, 89, 568, 60, 17, Muted);
+        }
+        public void OpenSettings()
+        {
+            var panel = OpenModal("Ajustes", "A TU MEDIDA", "Los ajustes se guardan para la próxima vez.");
+            VolumeControl(panel, "MÚSICA", 226, SnakeAudio.Instance.MusicVolume, SnakeAudio.Instance.SetMusicVolume);
+            VolumeControl(panel, "EFECTOS", 142, SnakeAudio.Instance.EffectsVolume, SnakeAudio.Instance.SetEffectsVolume);
+            var mute = Button(panel, "SILENCIAR", "", 36, 87, 568, 40, Background, Light,
+                () => { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }, 14);
+            muteText = mute.GetComponentInChildren<Text>(); RefreshMute();
+        }
+        void RefreshMute()
+        { if (muteText != null) muteText.text = SnakeAudio.Instance.Muted ? "REACTIVAR SONIDO  /  M" : "SILENCIAR SONIDO  /  M"; }
+        void VolumeControl(Transform parent, string title, float y, float value, Action<float> changed)
+        {
+            Label(parent, title, 36, y + 35, 360, 25, 13, Mint, FontStyle.Bold);
+            var percent = Label(parent, Mathf.RoundToInt(value * 100) + "%", 474, y + 35, 130, 25, 14, Light, FontStyle.Normal, TextAnchor.MiddleRight);
+            var root = Rect(parent, title + " volumen", 36, y, 568, 28);
+            var track = Box(root, "Pista", 0, 10, 568, 8, Background); SnakeTheme.Round(track);
+            var fillArea = Rect(root, "Área de relleno", 0, 10, 568, 8);
+            var fill = Box(fillArea, "Relleno", 0, 0, 568, 8, Mint); SnakeTheme.Round(fill);
+            fill.rectTransform.sizeDelta = Vector2.zero;
+            var handleArea = Rect(root, "Área de control", 10, 4, 548, 20);
+            var handle = Box(handleArea, "Control", 0, 0, 20, 20, Light); SnakeTheme.Round(handle); handle.raycastTarget = true;
+            handle.rectTransform.sizeDelta = new Vector2(20, 0);
+            var slider = root.gameObject.AddComponent<Slider>();
+            handle.rectTransform.pivot = new Vector2(.5f, 0);
+            slider.targetGraphic = handle; slider.fillRect = fill.rectTransform; slider.handleRect = handle.rectTransform;
+            slider.minValue = 0; slider.maxValue = 1; slider.SetValueWithoutNotify(value);
+            slider.onValueChanged.AddListener(v => { changed(v); percent.text = Mathf.RoundToInt(v * 100) + "%"; });
+        }
+        public void OpenCredits()
+        {
+            var panel = OpenModal("Créditos", "EL EQUIPO", "Snake Trío · Videojuego 2D · PGM-611");
+            Label(panel, "Alejandro Villalpando Rojas", 36, 250, 568, 30, 21, Light, FontStyle.Bold);
+            Label(panel, "@Alexwuuu1", 36, 222, 568, 25, 15, Mint);
+            Label(panel, "Galilea Alison Llusco Asistiri", 36, 173, 568, 30, 21, Light, FontStyle.Bold);
+            Label(panel, "@Galileya", 36, 145, 568, 25, 15, Mint);
+            Label(panel, "Cristopher Iori Lazcano Gutierrez", 36, 96, 568, 30, 21, Light, FontStyle.Bold);
+            Label(panel, "@Crisshubb", 36, 78, 568, 22, 15, Mint);
         }
         void MiniBoard(Transform parent, float x, float y, float cell)
         {
@@ -159,8 +295,7 @@ namespace SnakeTrio
         {
             var image = Box(parent, name, x, y, w, h, background); image.raycastTarget = true;
             var button = image.gameObject.AddComponent<Button>(); button.targetGraphic = image;
-            var colors = button.colors; colors.highlightedColor = new Color(.85f, 1, .91f); colors.pressedColor = new Color(.62f,.85f,.7f); button.colors = colors;
-            button.navigation = new Navigation { mode = Navigation.Mode.None };
+            SnakeTheme.Style(button);
             Label(image.transform, caption, 0, 0, w, h, size, foreground, FontStyle.Bold, TextAnchor.MiddleCenter);
             button.onClick.AddListener(() => { SnakeAudio.Instance.Click(); action(); }); return button;
         }
