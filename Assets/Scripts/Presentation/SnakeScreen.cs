@@ -39,11 +39,7 @@ namespace SnakeTrio
         }
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F11))
-            {
-                SnakePreferences.Fullscreen = !SnakePreferences.Fullscreen;
-                Screen.fullScreenMode = SnakePreferences.Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
-            }
+            if (Input.GetKeyDown(KeyCode.F11)) ToggleFullscreen();
             string scene = SceneManager.GetActiveScene().name;
             if (Input.GetKeyDown(KeyCode.M)) { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }
             if (Input.GetKeyDown(KeyCode.F1) && scene != "Juego" && !ModalOpen) OpenHelp();
@@ -66,6 +62,11 @@ namespace SnakeTrio
               readyText.text = "PREPÁRATE  ·  " + Mathf.CeilToInt(game.ReadyTime); }
         }
         public void Play() { if (!ModalOpen) SceneManager.LoadScene("Juego"); }
+        public void ToggleFullscreen()
+        {
+            SnakePreferences.Fullscreen = !SnakePreferences.Fullscreen;
+            Screen.fullScreenMode = SnakePreferences.Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+        }
         public void RefreshScore()
         {
             if (game == null || game.Model == null) return;

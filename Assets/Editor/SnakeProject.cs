@@ -102,7 +102,7 @@ public static class SnakeProject
         for (int i = 0; i < 3; i++) settings[i] = new EditorBuildSettingsScene(Root + "Scenes/" + Scenes[i] + ".unity", true);
         EditorBuildSettings.scenes = settings;
         PlayerSettings.productName = "Snake Trío · PGM-611"; PlayerSettings.companyName = "Equipo PGM-611";
-        PlayerSettings.bundleVersion = "1.2.0";
+        PlayerSettings.bundleVersion = "1.3.0";
         PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
@@ -203,7 +203,7 @@ public static class SnakeProject
     {
         Prepare(); Validate();
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = Array.ConvertAll(Scenes, s => Root + "Scenes/" + s + ".unity"),
-            locationPathName = "Builds/Windows-v1.2/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
+            locationPathName = "Builds/Windows-v1.3/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
         if (report.summary.result != BuildResult.Succeeded) throw new BuildFailedException("Compilación Windows: " + report.summary.result);
         Debug.Log("BUILD_OK: " + report.summary.totalSize + " bytes");
     }
