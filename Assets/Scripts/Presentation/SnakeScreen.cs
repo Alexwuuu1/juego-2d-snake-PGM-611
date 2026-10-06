@@ -13,7 +13,8 @@ namespace SnakeTrio
         static readonly Color Mint = Hex("82edb9"), Gold = Hex("ffc75d"), Light = Hex("eef6ef"), Muted = Hex("93b3a7");
         RectTransform canvas;
         Font font;
-        Text scoreText, fruitText, readyText;
+        Text scoreText, fruitText, readyText, difficultyText, recordText;
+        Button[] difficultyButtons = new Button[3];
         GameObject pausePanel, readyPanel;
         SnakeGame game;
 
@@ -55,25 +56,44 @@ namespace SnakeTrio
         void BuildMenu()
         {
             Box(canvas, "Fondo", 0, 0, 1280, 720, Background);
-            Label(canvas, "PGM-611  /  VIDEOJUEGO 2D", 72, 627, 520, 28, 16, Mint);
-            Label(canvas, "SNAKE\nTRÍO", 68, 416, 520, 186, 82, Light, FontStyle.Bold);
-            Box(canvas, "Acento", 74, 403, 85, 4, Gold);
-            Label(canvas, "Un jardín. Una serpiente.\n¿Cuánto puedes crecer?", 74, 319, 495, 66, 24, Muted);
-            Label(canvas, "ELIGE TU RITMO", 74, 270, 450, 25, 13, Muted);
+            Label(canvas, "SNAKE TRÍO", 72, 649, 340, 35, 22, Light, FontStyle.Bold);
+            Label(canvas, "PGM-611    /    ARCADE 2D", 912, 653, 300, 27, 13, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
+            Box(canvas, "Línea de cabecera", 74, 630, 1132, 1, Hex("31504a"));
+            Label(canvas, "UN JARDÍN POR RECORRER", 74, 548, 520, 27, 14, Mint, FontStyle.Bold);
+            Label(canvas, "SNAKE", 68, 449, 548, 95, 82, Light, FontStyle.Bold);
+            Label(canvas, "Encuentra tu ritmo. Come, crece y supera
+tu mejor partida.", 74, 378, 510, 65, 22, Muted);
+            Label(canvas, "DIFICULTAD", 74, 339, 480, 23, 12, Muted, FontStyle.Bold);
             for (int i = 0; i < 3; i++)
             {
                 int index = i;
-                var button = Button(canvas, "Dificultad " + i, SnakeSession.DifficultyNames[i], 74 + i * 159, 220, 149, 39,
-                    SnakeSession.Difficulty == i ? Mint : PanelColor, SnakeSession.Difficulty == i ? Background : Light,
-                    () => { SnakeSession.Difficulty = index; SceneManager.LoadScene("Menu"); });
+                difficultyButtons[i] = Button(canvas, "Dificultad " + i, SnakeSession.DifficultyNames[i],
+                    74 + i * 157, 282, 147, 45, PanelColor, Light, () => SelectDifficulty(index), 13);
             }
-            Button(canvas, "JUGAR", "JUGAR  →", 74, 143, 302, 58, Mint, Background, Play, 22);
-            Button(canvas, "SALIR", "SALIR", 393, 143, 148, 58, PanelColor, Light, Application.Quit, 18);
-            Label(canvas, "Flechas para moverte  ·  Enter para empezar", 74, 103, 525, 23, 14, Muted);
-            MiniBoard(canvas, 655, 187, 28);
-            Label(canvas, "COME. CRECE. EVITA LOS BORDES.", 652, 136, 530, 30, 15, Gold);
-            Label(canvas, "RÉCORD LOCAL  " + PlayerPrefs.GetInt("SnakeTrio_Record", 0).ToString("000"), 652, 107, 530, 27, 17, Light);
+            difficultyText = Label(canvas, "", 74, 245, 495, 25, 14, Muted);
+            Button(canvas, "JUGAR", "JUGAR   →", 74, 158, 312, 62, Mint, Background, Play, 22);
+            Button(canvas, "SALIR", "SALIR", 404, 158, 131, 62, PanelColor, Light, Application.Quit, 16);
+            Label(canvas, "Flechas para moverte  ·  Enter para empezar", 74, 117, 525, 24, 14, Muted);
+            var card = Box(canvas, "Tarjeta de jardín", 650, 171, 557, 437, PanelColor); SnakeTheme.Round(card);
+            Label(canvas, "EL JARDÍN", 684, 574, 200, 26, 12, Mint, FontStyle.Bold);
+            Label(canvas, "28 × 20 CELDAS", 978, 574, 194, 26, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
+            MiniBoard(canvas, 684, 195, 26);
+            recordText = Label(canvas, "", 650, 117, 557, 31, 16, Gold, FontStyle.Bold, TextAnchor.MiddleCenter);
+            SelectDifficulty(SnakeSession.Difficulty);
             Credits(canvas);
+        }
+        public void SelectDifficulty(int index)
+        {
+            SnakeSession.Difficulty = index;
+            for (int i = 0; i < difficultyButtons.Length; i++)
+            {
+                bool selected = i == SnakeSession.Difficulty;
+                difficultyButtons[i].GetComponent<Image>().color = selected ? Mint : PanelColor;
+                difficultyButtons[i].GetComponentInChildren<Text>().color = selected ? Background : Light;
+            }
+            string[] descriptions = { "Más tiempo para planear cada giro.", "El equilibrio entre ritmo y precisión.", "Reflejos rápidos. Cada movimiento cuenta." };
+            difficultyText.text = descriptions[SnakeSession.Difficulty];
+            recordText.text = "RÉCORD  /  " + SnakeSession.DifficultyNames[SnakeSession.Difficulty] + "    " + SnakeSession.Record(SnakeSession.Difficulty).ToString("000");
         }
         void BuildGame()
         {
