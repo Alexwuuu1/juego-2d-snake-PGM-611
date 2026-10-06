@@ -13,7 +13,7 @@ namespace SnakeTrio
         static readonly Color Mint = Hex("82edb9"), Gold = Hex("ffc75d"), Light = Hex("eef6ef"), Muted = Hex("93b3a7");
         RectTransform canvas;
         Font font;
-        Text scoreText, fruitText, readyText, difficultyText, recordText;
+        Text scoreText, fruitText, readyText, difficultyText, recordText, muteText;
         Button[] difficultyButtons = new Button[3];
         GameObject pausePanel, readyPanel, modal;
         GameObject previousSelection;
@@ -37,6 +37,7 @@ namespace SnakeTrio
         void Update()
         {
             string scene = SceneManager.GetActiveScene().name;
+            if (Input.GetKeyDown(KeyCode.M)) { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }
             if (Input.GetKeyDown(KeyCode.Escape) && ModalOpen) { CloseModal(); return; }
             if (Input.GetKeyDown(KeyCode.Return) && scene != "Juego" && !ModalOpen
                 && EventSystem.current.currentSelectedGameObject == null) Play();
@@ -143,6 +144,7 @@ tu mejor partida.", 74, 378, 510, 65, 22, Muted);
         void Credits(Transform parent)
         {
             Button(parent, "CRÉDITOS", "CRÉDITOS", 74, 48, 138, 37, PanelColor, Light, OpenCredits, 12);
+            Button(parent, "AJUSTES", "AJUSTES", 225, 48, 138, 37, PanelColor, Light, OpenSettings, 12);
             Label(parent, "PROYECTO ACADÉMICO   /   PGM-611", 807, 48, 400, 37, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
         }
         RectTransform OpenModal(string name, string title, string subtitle)
@@ -166,6 +168,33 @@ tu mejor partida.", 74, 378, 510, 65, 22, Muted);
             modal.SetActive(false); Destroy(modal); modal = null;
             foreach (var selectable in canvas.GetComponentsInChildren<Selectable>()) selectable.interactable = true;
             EventSystem.current.SetSelectedGameObject(previousSelection);
+        }
+        public void OpenSettings()
+        {
+            var panel = OpenModal("Ajustes", "A TU MEDIDA", "Los ajustes se guardan para la próxima vez.");
+            VolumeControl(panel, "MÚSICA", 226, SnakeAudio.Instance.MusicVolume, SnakeAudio.Instance.SetMusicVolume);
+            VolumeControl(panel, "EFECTOS", 142, SnakeAudio.Instance.EffectsVolume, SnakeAudio.Instance.SetEffectsVolume);
+            var mute = Button(panel, "SILENCIAR", "", 36, 87, 568, 40, Background, Light,
+                () => { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }, 14);
+            muteText = mute.GetComponentInChildren<Text>(); RefreshMute();
+        }
+        void RefreshMute()
+        { if (muteText != null) muteText.text = SnakeAudio.Instance.Muted ? "REACTIVAR SONIDO  /  M" : "SILENCIAR SONIDO  /  M"; }
+        void VolumeControl(Transform parent, string title, float y, float value, Action<float> changed)
+        {
+            Label(parent, title, 36, y + 35, 360, 25, 13, Mint, FontStyle.Bold);
+            var percent = Label(parent, Mathf.RoundToInt(value * 100) + "%", 474, y + 35, 130, 25, 14, Light, FontStyle.Normal, TextAnchor.MiddleRight);
+            var root = Rect(parent, title + " volumen", 36, y, 568, 28);
+            var track = Box(root, "Pista", 0, 10, 568, 8, Background); SnakeTheme.Round(track);
+            var fillArea = Rect(root, "Área de relleno", 0, 10, 568, 8);
+            var fill = Box(fillArea, "Relleno", 0, 0, 568, 8, Mint); SnakeTheme.Round(fill);
+            var handleArea = Rect(root, "Área de control", 10, 0, 548, 28);
+            var handle = Box(handleArea, "Control", 0, 4, 20, 20, Light); SnakeTheme.Round(handle); handle.raycastTarget = true;
+            var slider = root.gameObject.AddComponent<Slider>();
+            handle.rectTransform.pivot = new Vector2(.5f, 0);
+            slider.targetGraphic = handle; slider.fillRect = fill.rectTransform; slider.handleRect = handle.rectTransform;
+            slider.minValue = 0; slider.maxValue = 1; slider.SetValueWithoutNotify(value);
+            slider.onValueChanged.AddListener(v => { changed(v); percent.text = Mathf.RoundToInt(v * 100) + "%"; });
         }
         public void OpenCredits()
         {
