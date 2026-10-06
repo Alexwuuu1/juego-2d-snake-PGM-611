@@ -30,7 +30,7 @@ namespace SnakeTrio
         }
         void Update()
         {
-            if (Model == null || ending) return;
+            if (Model == null || ending || screen.BlocksGameplayInput) return;
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)) TogglePause();
             if (Paused) return;
             var requested = ReadDirection(); if (requested != Vector2Int.zero) Model.QueueDirection(requested);

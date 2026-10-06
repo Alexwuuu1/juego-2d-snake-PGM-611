@@ -10,7 +10,7 @@ Juego de Snake 2D hecho con Unity 6. Mueve la serpiente, recoge fruta y evita ch
 | Galilea Alison Llusco Asistiri | Galileya |
 | Cristopher Iori Lazcano Gutierrez | Crisshubb |
 
-Cada integrante debe revisar, comprender y explicar los cambios que presenta.
+Cada integrante revisa y explica los cambios que presenta. El proyecto conserva las ramas de trabajo y el historial de integración del equipo.
 
 ## Requisitos de la entrega
 
@@ -26,7 +26,7 @@ Cada integrante debe revisar, comprender y explicar los cambios que presenta.
 
 Abre el proyecto en Unity **6000.3.11f1**. Usa **Snake Trío → Preparar escenas** y abre `Assets/Scenes/Menu.unity`. Pulsa Play.
 
-Para compilar: **Snake Trío → Compilar Windows**. El ejecutable se genera en `Builds/Windows/SnakeTrio.exe`; distribuye la carpeta completa, incluyendo `SnakeTrio_Data` y las DLL. La compilación descargable se adjunta al repositorio como Release.
+Para compilar: **Snake Trío → Compilar Windows**. El ejecutable se genera en `Builds/Windows-v1.1/SnakeTrio.exe`; distribuye la carpeta completa, incluyendo `SnakeTrio_Data` y las DLL. La compilación descargable se adjunta al repositorio como Release.
 
 ## Controles
 
@@ -34,7 +34,11 @@ Para compilar: **Snake Trío → Compilar Windows**. El ejecutable se genera en 
 - Esc o P: pausar y continuar.
 - Enter: empezar desde el menú o volver a jugar desde el resultado.
 - R: reiniciar desde el resultado.
+- M: silenciar o reactivar sonido.
+- F1: abrir ayuda desde el menú o resultado.
 - F12: guardar una captura junto al ejecutable.
+
+El menú ofrece ayuda, créditos y ajustes con volumen de música y efectos independientes. El ritmo elegido y los ajustes se conservan al cerrar el juego. Al cambiar de ventana la partida se pausa; al continuar aparece una cuenta breve. Reiniciar o abandonar desde la pausa requiere confirmación. Los resultados muestran duración, longitud, movimientos y récord de la dificultad elegida.
 
 La serpiente no puede girar 180 grados directamente. Solo se procesa un giro por avance, para evitar colisiones causadas por pulsaciones rápidas.
 
