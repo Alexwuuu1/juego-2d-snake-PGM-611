@@ -82,7 +82,7 @@ namespace SnakeTrio
 
     public static class SnakeSession
     {
-        public static int Difficulty = 1;
+        public static int Difficulty { get => SnakePreferences.Difficulty; set => SnakePreferences.Difficulty = value; }
         public static int LastScore, LastFruits;
         public static bool Won;
         public static string Reason = "";
