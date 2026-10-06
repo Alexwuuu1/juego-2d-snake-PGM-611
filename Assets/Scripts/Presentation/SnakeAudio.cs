@@ -21,6 +21,11 @@ namespace SnakeTrio
             hitClip = Tone(210, .28f, 65); winClip = Tone(660, .45f, 1320);
             ApplySettings(); music.Play();
         }
+        public void ResetSettings()
+        {
+            SnakePreferences.MusicVolume = .25f; SnakePreferences.EffectsVolume = .32f;
+            SnakePreferences.Muted = false; ApplySettings();
+        }
         public void SetMusicVolume(float value) { SnakePreferences.MusicVolume = value; ApplySettings(); }
         public void SetEffectsVolume(float value) { SnakePreferences.EffectsVolume = value; ApplySettings(); }
         public void ToggleMute() { SnakePreferences.Muted = !Muted; ApplySettings(); }

@@ -4,6 +4,11 @@ namespace SnakeTrio
 {
     public static class SnakePreferences
     {
+        public static bool Fullscreen
+        {
+            get => PlayerPrefs.GetInt("SnakeTrio_Fullscreen", 0) == 1;
+            set { PlayerPrefs.SetInt("SnakeTrio_Fullscreen", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
         public static int Difficulty
         {
             get => Mathf.Clamp(PlayerPrefs.GetInt("SnakeTrio_Difficulty", 1), 0, 2);

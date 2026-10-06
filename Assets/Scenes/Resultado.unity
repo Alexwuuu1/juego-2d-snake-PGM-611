@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &447387520
+--- !u!1 &1255795932
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,57 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 447387523}
-  - component: {fileID: 447387522}
-  - component: {fileID: 447387521}
+  - component: {fileID: 1255795934}
+  - component: {fileID: 1255795933}
+  m_Layer: 0
+  m_Name: Interfaz Resultado
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1255795933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255795932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffb9625496877de468396859f131992e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SnakeTrio.SnakeScreen
+  headSprite: {fileID: -5651859088685975654, guid: 4baae18aeb2821944aff8fe4e0e74944, type: 3}
+  bodySprite: {fileID: 5757043408340444283, guid: 7ec71bdca496891438eadeaea94bf4d2, type: 3}
+  fruitSprite: {fileID: -4693420249011722933, guid: 9ea1af958116b07468697e945b0d112c, type: 3}
+  tileSprite: {fileID: -5475113435577824946, guid: b89d0e2c98bea4047a45590032bf4c1a, type: 3}
+--- !u!4 &1255795934
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255795932}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1726574962
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1726574965}
+  - component: {fileID: 1726574964}
+  - component: {fileID: 1726574963}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -137,21 +185,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &447387521
+--- !u!81 &1726574963
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 447387520}
+  m_GameObject: {fileID: 1726574962}
   m_Enabled: 1
---- !u!20 &447387522
+--- !u!20 &1726574964
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 447387520}
+  m_GameObject: {fileID: 1726574962}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -196,64 +244,16 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &447387523
+--- !u!4 &1726574965
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 447387520}
+  m_GameObject: {fileID: 1726574962}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1210350417
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1210350419}
-  - component: {fileID: 1210350418}
-  m_Layer: 0
-  m_Name: Interfaz Resultado
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1210350418
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1210350417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffb9625496877de468396859f131992e, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::SnakeTrio.SnakeScreen
-  headSprite: {fileID: -5651859088685975654, guid: 4baae18aeb2821944aff8fe4e0e74944, type: 3}
-  bodySprite: {fileID: 5757043408340444283, guid: 7ec71bdca496891438eadeaea94bf4d2, type: 3}
-  fruitSprite: {fileID: -4693420249011722933, guid: 9ea1af958116b07468697e945b0d112c, type: 3}
-  tileSprite: {fileID: -5475113435577824946, guid: b89d0e2c98bea4047a45590032bf4c1a, type: 3}
---- !u!4 &1210350419
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1210350417}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -263,5 +263,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 447387523}
-  - {fileID: 1210350419}
+  - {fileID: 1726574965}
+  - {fileID: 1255795934}

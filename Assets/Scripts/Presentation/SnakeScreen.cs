@@ -26,6 +26,7 @@ namespace SnakeTrio
         void Awake()
         {
             if (SnakeAudio.Instance == null) new GameObject("Audio del juego").AddComponent<SnakeAudio>();
+            Screen.fullScreenMode = SnakePreferences.Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             var go = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvas = go.GetComponent<RectTransform>(); go.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -38,6 +39,7 @@ namespace SnakeTrio
         }
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.F11)) ToggleFullscreen();
             string scene = SceneManager.GetActiveScene().name;
             if (Input.GetKeyDown(KeyCode.M)) { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }
             if (Input.GetKeyDown(KeyCode.F1) && scene != "Juego" && !ModalOpen) OpenHelp();
@@ -60,6 +62,11 @@ namespace SnakeTrio
               readyText.text = "PREPÁRATE  ·  " + Mathf.CeilToInt(game.ReadyTime); }
         }
         public void Play() { if (!ModalOpen) SceneManager.LoadScene("Juego"); }
+        public void ToggleFullscreen()
+        {
+            SnakePreferences.Fullscreen = !SnakePreferences.Fullscreen;
+            Screen.fullScreenMode = SnakePreferences.Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+        }
         public void RefreshScore()
         {
             if (game == null || game.Model == null) return;
@@ -91,7 +98,7 @@ namespace SnakeTrio
             difficultyText = Label(canvas, "", 74, 245, 495, 25, 14, Muted);
             Button(canvas, "JUGAR", "JUGAR   →", 74, 158, 312, 62, Mint, Background, Play, 22);
             Button(canvas, "SALIR", "SALIR", 404, 158, 131, 62, PanelColor, Light, Application.Quit, 16);
-            Label(canvas, "Flechas para moverte  ·  Enter para empezar", 74, 117, 525, 24, 14, Muted);
+            Label(canvas, "Flechas o WASD para moverte  ·  Enter para empezar", 74, 117, 525, 24, 14, Muted);
             var card = Box(canvas, "Tarjeta de jardín", 650, 171, 557, 437, PanelColor); SnakeTheme.Round(card);
             Label(canvas, "EL JARDÍN", 684, 574, 200, 26, 12, Mint, FontStyle.Bold);
             Label(canvas, "28 × 20 CELDAS", 978, 574, 194, 26, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
@@ -129,7 +136,7 @@ namespace SnakeTrio
             Label(canvas, "TU MEJOR PARTIDA", 1032, 507, 204, 30, 12, Muted, FontStyle.Bold);
             Label(canvas, SnakeSession.Record(SnakeSession.Difficulty).ToString("000"), 1032, 442, 200, 60, 44, Mint, FontStyle.Bold);
             Box(canvas, "Divisor lateral", 1032, 416, 194, 1, Hex("31504a"));
-            Label(canvas, "FLECHAS\nCambiar dirección\n\nESC / P\nPausa\n\nM\nSilenciar sonido", 1032, 199, 206, 196, 16, Muted);
+            Label(canvas, "FLECHAS / WASD\nCambiar dirección\n\nESC / P\nPausa\n\nM\nSilenciar sonido", 1032, 199, 206, 196, 16, Muted);
             Label(canvas, "UN GIRO POR PASO   /   PLANEA TU SIGUIENTE MOVIMIENTO", 306, 54, 680, 27, 12, Muted, FontStyle.Normal, TextAnchor.MiddleCenter);
             readyPanel = Box(canvas, "Cuenta de inicio", 393, 320, 493, 73, Background).gameObject; SnakeTheme.Round(readyPanel.GetComponent<Image>());
             readyText = Label(readyPanel.transform, "PREPÁRATE", 0, 0, 493, 73, 24, Mint, FontStyle.Bold, TextAnchor.MiddleCenter);
@@ -211,7 +218,7 @@ namespace SnakeTrio
         public void OpenHelp()
         {
             var panel = OpenModal("Ayuda", "CÓMO JUGAR", "Una fruta, diez puntos. Llena el jardín para ganar.");
-            Label(panel, "FLECHAS", 36, 254, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "FLECHAS / WASD", 36, 254, 157, 27, 14, Mint, FontStyle.Bold);
             Label(panel, "Cambia la dirección de la serpiente.", 210, 254, 394, 27, 16, Light);
             Label(panel, "ESC / P", 36, 210, 157, 27, 14, Mint, FontStyle.Bold);
             Label(panel, "Pausa o continúa la partida.", 210, 210, 394, 27, 16, Light);
@@ -221,15 +228,17 @@ namespace SnakeTrio
         }
         public void OpenSettings()
         {
-            var panel = OpenModal("Ajustes", "A TU MEDIDA", "Los ajustes se guardan para la próxima vez.");
+            var panel = OpenModal("Ajustes", "A TU MEDIDA", "Volumen guardado · F11 cambia la pantalla");
             VolumeControl(panel, "MÚSICA", 226, SnakeAudio.Instance.MusicVolume, SnakeAudio.Instance.SetMusicVolume);
             VolumeControl(panel, "EFECTOS", 142, SnakeAudio.Instance.EffectsVolume, SnakeAudio.Instance.SetEffectsVolume);
-            var mute = Button(panel, "SILENCIAR", "", 36, 87, 568, 40, Background, Light,
+            var mute = Button(panel, "SILENCIAR", "", 36, 87, 274, 40, Background, Light,
                 () => { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }, 14);
             muteText = mute.GetComponentInChildren<Text>(); RefreshMute();
+            Button(panel, "RESTABLECER", "RESTABLECER", 330, 87, 274, 40, Background, Light,
+                () => { SnakeAudio.Instance.ResetSettings(); OpenSettings(); }, 13);
         }
         void RefreshMute()
-        { if (muteText != null) muteText.text = SnakeAudio.Instance.Muted ? "REACTIVAR SONIDO  /  M" : "SILENCIAR SONIDO  /  M"; }
+        { if (muteText != null) muteText.text = SnakeAudio.Instance.Muted ? "REACTIVAR  /  M" : "SILENCIAR  /  M"; }
         void VolumeControl(Transform parent, string title, float y, float value, Action<float> changed)
         {
             Label(parent, title, 36, y + 35, 360, 25, 13, Mint, FontStyle.Bold);
