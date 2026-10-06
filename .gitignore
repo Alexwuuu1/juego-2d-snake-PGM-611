@@ -15,4 +15,4 @@
 *.mdb
 *.log
 .DS_Store
-Capturas/
+/Capturas/

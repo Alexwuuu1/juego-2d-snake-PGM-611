@@ -40,15 +40,29 @@ La serpiente no puede girar 180 grados directamente. Solo se procesa un giro por
 
 ## Estructura
 
-- `Assets/Scripts/Core`: reglas y estado de la partida.
+- `Assets/Sprites`: imágenes PNG originales de serpiente, comida y escenario.
+- `Assets/Prefabs`: cabeza con Rigidbody2D, segmentos, comida con trigger y paredes con Collider2D.
+- `Assets/Animations`: animaciones y controladores del parpadeo y brillo de la fruta.
+- `Assets/Tiles`: baldosas del suelo, usadas por el Grid y Tilemap de la escena Juego.
+- `Assets/Materials`: material físico sin fricción.
+- `Assets/Scripts/Core`: reglas, consultas Physics2D y estado de la partida.
 - `Assets/Scripts/Presentation`: interfaz, controles y sonidos.
 - `Assets/Editor`: preparación de escenas, validación y compilación.
 - `docs`: entrega, explicación y colaboración.
 
-No se requieren recursos artísticos ni sonoros descargados: la interfaz y los sonidos se generan en el proyecto.
+Los sprites PNG se importan como Sprite (2D and UI), con filtro Point y 32 píxeles por unidad. La cabeza utiliza Rigidbody2D cinemático sin gravedad y rotación bloqueada. El movimiento se programa por celdas en C# y las consultas Physics2D contra los Collider2D detectan choques. No se necesita gravedad en Snake. Los sonidos se sintetizan en C#.
 
 ## Colaboración
 
-Cada persona debe aceptar su invitación al repositorio. Usen una rama por tarea y commits que describan cambios reales. No modifiquen el nombre del autor de commits anteriores.
+Cada persona debe aceptar su invitación al repositorio. Las ramas de trabajo son `feature/alejandro`, `feature/galilea` y `feature/criss`. Se integran por pull request a `develop`; después de probar, se pasa `develop` a `main`. `main` contiene la entrega. No modifiquen el autor de commits anteriores.
 
 El archivo `docs/PARA_CRISS.md` contiene tareas y cambios preparados para que Cristopher revise, pruebe y suba desde su propia cuenta.
+
+
+## Vista del juego
+
+![Menú](docs/capturas/Menu.png)
+
+![Partida](docs/capturas/Juego.png)
+
+![Resultado](docs/capturas/Resultado.png)
