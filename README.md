@@ -1,69 +1,87 @@
 # Snake Trío · PGM-611
 
-Juego de Snake 2D hecho con Unity 6. Mueve la serpiente, recoge fruta y evita chocar contra los bordes o tu propio cuerpo. Una fruta suma 10 puntos; completar el tablero gana la partida.
+Proyecto académico de videojuego 2D desarrollado en **Unity 6 y C#** para la asignatura **PGM-611**. El objetivo es controlar una serpiente, recoger frutas y aumentar la puntuación sin chocar contra los bordes ni contra su propio cuerpo.
 
-## Equipo
+## Integrantes
 
 | Integrante | GitHub |
 | --- | --- |
-| Alejandro Villalpando Rojas | Alexwuuu1 |
-| Galilea Alison Llusco Asistiri | Galileya |
-| Cristopher Iori Lazcano Gutierrez | Crisshubb |
+| Alejandro Villalpando Rojas | [Alexwuuu1](https://github.com/Alexwuuu1) |
+| Galilea Alison Llusco Asistiri | [Galileya](https://github.com/Galileya) |
+| Cristopher Iori Lazcano Gutierrez | [Crisshubb](https://github.com/Crisshubb) |
 
-Cada integrante revisa y explica los cambios que presenta. El proyecto conserva las ramas de trabajo y el historial de integración del equipo.
+## Ejecutable para Windows
 
-## Requisitos de la entrega
+[Descargar Snake Trío v1.1.0](https://github.com/Alexwuuu1/juego-2d-snake-PGM-611/releases/download/v1.1.0/SnakeTrio-Windows-v1.1.0.zip)
 
-- Snake para un grupo de tres integrantes.
-- Sonidos de comida, choque y botones, más música de fondo.
-- Colisiones contra paredes y contra la serpiente.
-- Marcador, récord local y final de partida.
-- Tres escenas: Menu, Juego y Resultado.
-- Ejecutable Windows y repositorio GitHub.
-- Exposición breve del funcionamiento y aportes del equipo.
+Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la carpeta `SnakeTrio_Data` y las DLL incluidas. No es necesario instalar Unity para jugar.
 
-## Ejecutar y editar
+## Características
 
-Abre el proyecto en Unity **6000.3.11f1**. Usa **Snake Trío → Preparar escenas** y abre `Assets/Scenes/Menu.unity`. Pulsa Play.
-
-Para compilar: **Snake Trío → Compilar Windows**. El ejecutable se genera en `Builds/Windows-v1.1/SnakeTrio.exe`; distribuye la carpeta completa, incluyendo `SnakeTrio_Data` y las DLL. La compilación descargable se adjunta al repositorio como Release.
+- Tablero de 28 × 20 celdas con sprites y suelo Tilemap.
+- Tres dificultades: Tranquilo, Clásico y Rápido.
+- Cada fruta suma 10 puntos y un segmento a la serpiente.
+- Colisiones con bordes y cuerpo; victoria al completar el tablero.
+- Tres escenas: menú, juego y resultado.
+- Música, efectos de comida, choque, victoria y botones.
+- Ayuda, créditos y ajustes con volumen de música y efectos independientes.
+- Pausa automática al cambiar de ventana y cuenta breve al reanudar.
+- Confirmación antes de reiniciar o abandonar la partida desde la pausa.
+- Resultados con tiempo, frutas, longitud, movimientos y récord por dificultad.
+- Dificultad, sonido y récords guardados localmente.
 
 ## Controles
 
-- Flechas: cambiar dirección.
-- Esc o P: pausar y continuar.
-- Enter: empezar desde el menú o volver a jugar desde el resultado.
-- R: reiniciar desde el resultado.
-- M: silenciar o reactivar sonido.
-- F1: abrir ayuda desde el menú o resultado.
-- F12: guardar una captura junto al ejecutable.
+| Tecla | Acción |
+| --- | --- |
+| Flechas | Cambiar dirección |
+| Esc o P | Pausar o continuar |
+| Enter | Activar el botón seleccionado o comenzar desde el menú |
+| R | Volver a jugar desde el resultado |
+| M | Silenciar o reactivar sonido |
+| F1 | Abrir ayuda desde el menú o resultado |
+| F12 | Guardar una captura junto al ejecutable |
 
-El menú ofrece ayuda, créditos y ajustes con volumen de música y efectos independientes. El ritmo elegido y los ajustes se conservan al cerrar el juego. Al cambiar de ventana la partida se pausa; al continuar aparece una cuenta breve. Reiniciar o abandonar desde la pausa requiere confirmación. Los resultados muestran duración, longitud, movimientos y récord de la dificultad elegida.
+La serpiente no puede girar directamente 180 grados. Se procesa un giro por avance.
 
-La serpiente no puede girar 180 grados directamente. Solo se procesa un giro por avance, para evitar colisiones causadas por pulsaciones rápidas.
+## Proyecto en Unity
+
+Versión del editor: **6000.3.11f1**.
+
+1. Abrir esta carpeta como proyecto desde Unity Hub.
+2. Abrir `Assets/Scenes/Menu.unity` y pulsar **Play**.
+3. Para generar el ejecutable: **Snake Trío → Compilar Windows**.
+
+La compilación se genera en `Builds/Windows-v1.1/SnakeTrio.exe`. Las escenas, los prefabs, las animaciones y los recursos están incluidos en el repositorio.
 
 ## Estructura
 
-- `Assets/Sprites`: imágenes PNG originales de serpiente, comida y escenario.
-- `Assets/Prefabs`: cabeza con Rigidbody2D, segmentos, comida con trigger y paredes con Collider2D.
-- `Assets/Animations`: animaciones y controladores del parpadeo y brillo de la fruta.
-- `Assets/Tiles`: baldosas del suelo, usadas por el Grid y Tilemap de la escena Juego.
-- `Assets/Materials`: material físico sin fricción.
-- `Assets/Scripts/Core`: reglas, consultas Physics2D y estado de la partida.
-- `Assets/Scripts/Presentation`: interfaz, controles y sonidos.
-- `Assets/Editor`: preparación de escenas, validación y compilación.
-- `docs`: entrega, explicación y colaboración.
+| Carpeta | Contenido |
+| --- | --- |
+| `Assets/Scenes` | Menu, Juego y Resultado |
+| `Assets/Sprites` | Serpiente, fruta, suelo y bordes en PNG |
+| `Assets/Prefabs` | Cabeza, segmentos, comida y paredes |
+| `Assets/Tiles` | Baldosas del tablero |
+| `Assets/Animations` | Parpadeo de cabeza y brillo de fruta |
+| `Assets/Materials` | Material físico sin fricción |
+| `Assets/Scripts/Core` | Reglas, movimiento, colisiones y preferencias |
+| `Assets/Scripts/Presentation` | Interfaz, sonido y comprobaciones del ejecutable |
+| `Assets/Editor` | Preparación de escenas, validación y compilación |
+| `docs/capturas` | Imágenes del juego |
 
-Los sprites PNG se importan como Sprite (2D and UI), con filtro Point y 32 píxeles por unidad. La cabeza utiliza Rigidbody2D cinemático sin gravedad y rotación bloqueada. El movimiento se programa por celdas en C# y las consultas Physics2D contra los Collider2D detectan choques. No se necesita gravedad en Snake. Los sonidos se sintetizan en C#.
+Los sprites se importan como **Sprite (2D and UI)**, con filtro **Point** y 32 píxeles por unidad. La cabeza utiliza un **Rigidbody2D cinemático**, sin gravedad y con rotación bloqueada. Los **BoxCollider2D** de bordes y segmentos participan en las consultas de colisión de `Physics2D`. La comida utiliza un collider de tipo trigger. El movimiento y las reglas se implementan en C# por celdas.
 
-## Colaboración
+## Validación
 
-Cada persona debe aceptar su invitación al repositorio. Las ramas de trabajo son `feature/alejandro`, `feature/galilea` y `feature/criss`. Se integran por pull request a `develop`; después de probar, se pasa `develop` a `main`. `main` contiene la entrega. No modifiquen el autor de commits anteriores.
+En el editor, **Snake Trío → Validar reglas** comprueba dirección, crecimiento, puntuación, comida en celdas libres, choques, cola y victoria. El ejecutable incluye una comprobación de inicio, ajustes, pausa, componentes físicos, comida, crecimiento y transición al resultado:
 
-El archivo `docs/PARA_CRISS.md` contiene tareas y cambios preparados para que Cristopher revise, pruebe y suba desde su propia cuenta.
+```powershell
+.\SnakeTrio.exe --smoke-test -batchmode -nographics -logFile prueba.log
+```
 
+La versión Windows v1.1.0 pasó la compilación y las pruebas del ejecutable. Las pantallas también fueron revisadas visualmente.
 
-## Vista del juego
+## Capturas
 
 ![Menú](docs/capturas/Menu.png)
 
