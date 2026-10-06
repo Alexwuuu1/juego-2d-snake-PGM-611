@@ -52,3 +52,12 @@ No se requieren recursos artísticos ni sonoros descargados: la interfaz y los s
 Cada persona debe aceptar su invitación al repositorio. Usen una rama por tarea y commits que describan cambios reales. No modifiquen el nombre del autor de commits anteriores.
 
 El archivo `docs/PARA_CRISS.md` contiene tareas y cambios preparados para que Cristopher revise, pruebe y suba desde su propia cuenta.
+
+
+## Vista del juego
+
+![Menú](docs/capturas/Menu.png)
+
+![Partida](docs/capturas/Juego.png)
+
+![Resultado](docs/capturas/Resultado.png)
