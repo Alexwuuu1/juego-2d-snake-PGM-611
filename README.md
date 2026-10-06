@@ -12,13 +12,13 @@ Proyecto académico de videojuego 2D desarrollado en **Unity 6 y C#** para la as
 
 ## Ejecutable para Windows
 
-[Descargar Snake Trío v1.1.0](https://github.com/Alexwuuu1/juego-2d-snake-PGM-611/releases/download/v1.1.0/SnakeTrio-Windows-v1.1.0.zip)
+[Descargar Snake Trío v1.2.0](https://github.com/Alexwuuu1/juego-2d-snake-PGM-611/releases/download/v1.2.0/SnakeTrio-Windows-v1.2.0.zip)
 
 Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la carpeta `SnakeTrio_Data` y las DLL incluidas. No es necesario instalar Unity para jugar.
 
 ## Características
 
-- Tablero de 28 × 20 celdas con sprites y suelo Tilemap.
+- Tablero de 28 × 20 celdas con sprites editables en Aseprite y suelo Tilemap.
 - Tres dificultades: Tranquilo, Clásico y Rápido.
 - Cada fruta suma 10 puntos y un segmento a la serpiente.
 - Colisiones con bordes y cuerpo; victoria al completar el tablero.
@@ -53,14 +53,15 @@ Versión del editor: **6000.3.11f1**.
 2. Abrir `Assets/Scenes/Menu.unity` y pulsar **Play**.
 3. Para generar el ejecutable: **Snake Trío → Compilar Windows**.
 
-La compilación se genera en `Builds/Windows-v1.1/SnakeTrio.exe`. Las escenas, los prefabs, las animaciones y los recursos están incluidos en el repositorio.
+La compilación se genera en `Builds/Windows-v1.2/SnakeTrio.exe`. Las escenas, los prefabs, las animaciones y los recursos están incluidos en el repositorio.
 
 ## Estructura
 
 | Carpeta | Contenido |
 | --- | --- |
 | `Assets/Scenes` | Menu, Juego y Resultado |
-| `Assets/Sprites` | Serpiente, fruta, suelo y bordes en PNG |
+| `Assets/Sprites/Aseprite` | Fuentes editables `.aseprite` de serpiente, fruta, suelo y bordes |
+| `Assets/Sprites/Snake`, `Food`, `Environment` | Exportaciones PNG originales |
 | `Assets/Prefabs` | Cabeza, segmentos, comida y paredes |
 | `Assets/Tiles` | Baldosas del tablero |
 | `Assets/Animations` | Parpadeo de cabeza y brillo de fruta |
@@ -70,7 +71,7 @@ La compilación se genera en `Builds/Windows-v1.1/SnakeTrio.exe`. Las escenas, l
 | `Assets/Editor` | Preparación de escenas, validación y compilación |
 | `docs/capturas` | Imágenes del juego |
 
-Los sprites se importan como **Sprite (2D and UI)**, con filtro **Point** y 32 píxeles por unidad. La cabeza utiliza un **Rigidbody2D cinemático**, sin gravedad y con rotación bloqueada. Los **BoxCollider2D** de bordes y segmentos participan en las consultas de colisión de `Physics2D`. La comida utiliza un collider de tipo trigger. El movimiento y las reglas se implementan en C# por celdas.
+Unity importa directamente las fuentes `.aseprite` mediante **2D Aseprite Importer 3.0.2**, con filtro **Point** y 32 píxeles por unidad. La cabeza y la fruta tienen dos frames; el parpadeo y el brillo toman sus imágenes y tiempos de esos archivos. Los PNG originales se conservan como exportaciones. La cabeza utiliza un **Rigidbody2D cinemático**, sin gravedad y con rotación bloqueada. Los **BoxCollider2D** de bordes y segmentos participan en las consultas de colisión de `Physics2D`. La comida utiliza un collider de tipo trigger. El movimiento y las reglas se implementan en C# por celdas.
 
 ## Validación
 
@@ -80,7 +81,7 @@ En el editor, **Snake Trío → Validar reglas** comprueba dirección, crecimien
 .\SnakeTrio.exe --smoke-test -batchmode -nographics -logFile prueba.log
 ```
 
-La versión Windows v1.1.0 pasó la compilación y las pruebas del ejecutable. Las pantallas también fueron revisadas visualmente.
+La versión Windows publicada pasó la compilación y las pruebas del ejecutable. Las pantallas también fueron revisadas visualmente.
 
 ## Capturas
 
