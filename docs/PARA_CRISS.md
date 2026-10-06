@@ -1,14 +1,9 @@
-# Cambios preparados para Cristopher
+# Tres cambios para Cristopher · v1.1
 
-GitHub: **Crisshubb**. Rama: **feature/criss**.
+Cuenta: Crisshubb. Rama: feature/criss. Estos parches reemplazan el paquete anterior.
+Son cambios sin commit. Revisa, aplica y prueba cada uno antes de hacer tu commit.
 
-Primero acepta la invitación: https://github.com/Alexwuuu1/juego-2d-snake-PGM-611/invitations
-
-El paquete **Para-Criss.zip** contiene dos parches. Son cambios sin commit: revísalos, aplícalos, pruébalos y luego crea tus propios commits. No se han creado commits con tu nombre.
-
-## Preparar la rama
-
-En tu copia del repositorio:
+## Preparar
 
 ```powershell
 git fetch origin
@@ -17,44 +12,33 @@ git pull --ff-only origin feature/criss
 git config --local user.name "Cristopher Iori Lazcano Gutierrez"
 ```
 
-Configura `git config --local user.email` con un correo agregado y verificado en **tu cuenta Crisshubb**. Usa tu propio inicio de sesión de GitHub; las claves de Alejandro/Galilea de esta PC no autentican como Crisshubb.
+Configura tu correo verificado de Crisshubb con `git config --local user.email "TU_CORREO"`.
+Autentícate con tu propia cuenta al subir. No uses los autores de Alejandro o Galilea.
+Si tu rama ya tiene trabajo, consérvalo e integra develop; no hagas reset.
 
-## Commit 1: controles WASD
+## Aplicar en orden
 
-`01-controles-wasd.patch` agrega W/A/S/D como alternativa a las flechas y actualiza las indicaciones del menú y del README.
+Sustituye RUTA por la carpeta donde extraíste este paquete. Para cada parche ejecuta
+`git apply --check "RUTA/ARCHIVO.patch"` y luego `git apply "RUTA/ARCHIVO.patch"`.
+Abre Unity 6000.3.11f1, espera la importación y prueba antes de crear el commit.
+
+1. **01-controles-wasd.patch**: W/A/S/D además de flechas; instrucciones actualizadas.
+   Prueba ambos controles, un giro por paso y que no se permita invertir el sentido.
+   Mensaje: `feat: añadir controles WASD e instrucciones`.
+2. **02-pantalla-completa.patch**: F11 alterna ventana/pantalla completa y recuerda la elección.
+   Prueba ambas vistas, cambio de escena y cerrar/abrir; confirma que los botones se alinean.
+   Mensaje: `feat: alternar pantalla completa con F11`.
+3. **03-restablecer-sonido.patch**: botón para volver a los valores iniciales de sonido.
+   Cambia ambos volúmenes, silencia, restablece y reinicia: debe quedar 25%/32%, sonido activo.
+   Mensaje: `feat: restablecer preferencias de sonido`.
+
+Después de probar cada cambio:
 
 ```powershell
-git apply --check "RUTA/01-controles-wasd.patch"
-git apply "RUTA/01-controles-wasd.patch"
-```
-
-Prueba W/A/S/D y las flechas en Unity. Verifica también que no se permita invertir el sentido directamente.
-
-```powershell
-git add Assets/Scripts/Core/SnakeGame.cs Assets/Scripts/Presentation/SnakeScreen.cs README.md
-git commit -m "feat: agregar controles WASD y actualizar instrucciones"
+git add Assets/Scripts README.md
+git commit -m "MENSAJE_DEL_CAMBIO"
 git push origin feature/criss
 ```
 
-## Commit 2: control de sonido
-
-`02-control-sonido.patch` agrega un botón SONIDO en el menú y la tecla M. Conserva la preferencia al cerrar y abrir el juego. Actualiza la comprobación del menú para incluir el botón.
-
-```powershell
-git apply --check "RUTA/02-control-sonido.patch"
-git apply "RUTA/02-control-sonido.patch"
-```
-
-Prueba silenciar/reactivar, cambiar de escena y reiniciar el ejecutable. Luego:
-
-```powershell
-git add Assets/Scripts/Presentation/SnakeAudio.cs Assets/Scripts/Presentation/SnakeScreen.cs Assets/Scripts/Presentation/SnakeDiagnostics.cs README.md
-git commit -m "feat: agregar silencio de audio con preferencia persistente"
-git push origin feature/criss
-```
-
-## Integrar
-
-Crea un pull request **feature/criss → develop**. El equipo revisa y prueba los cambios; después actualiza **main** y genera una nueva versión Windows. Si Unity está abierto, espera a que termine la importación antes de probar. Nunca subas Library, Temp ni las claves SSH.
-
-Puedes modificar los parches para proponer tu propia solución. En la exposición explica lo que realmente revisaste, cambiaste y probaste, indicando la asistencia utilizada.
+Al terminar abre un pull request feature/criss → develop. Estos tres cambios todavía
+no están en main ni en el ejecutable v1.1; se integrarán después de tus pruebas y revisión.
