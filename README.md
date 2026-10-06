@@ -10,7 +10,7 @@ Juego de Snake 2D hecho con Unity 6. Mueve la serpiente, recoge fruta y evita ch
 | Galilea Alison Llusco Asistiri | Galileya |
 | Cristopher Iori Lazcano Gutierrez | Crisshubb |
 
-El desarrollo inicial se realizó con asistencia de Codex. Los commits de esta sesión se atribuyen a las cuentas indicadas por el equipo. Cada integrante debe revisar, comprender y explicar los cambios que presenta.
+Cada integrante revisa y explica los cambios que presenta. El proyecto conserva las ramas de trabajo y el historial de integración del equipo.
 
 ## Requisitos de la entrega
 

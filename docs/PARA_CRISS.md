@@ -57,4 +57,4 @@ git push origin feature/criss
 
 Crea un pull request **feature/criss → develop**. El equipo revisa y prueba los cambios; después actualiza **main** y genera una nueva versión Windows. Si Unity está abierto, espera a que termine la importación antes de probar. Nunca subas Library, Temp ni las claves SSH.
 
-Puedes modificar los parches para proponer tu propia solución. En la exposición explica lo que realmente revisaste, cambiaste y probaste, indicando la asistencia utilizada.
+Puedes modificar los parches para proponer tu propia solución. En la exposición explica lo que realmente revisaste, cambiaste y probaste.

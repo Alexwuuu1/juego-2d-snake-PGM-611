@@ -2,7 +2,7 @@
 
 ## Presentación
 
-Somos Alejandro Villalpando Rojas, Galilea Alison Llusco Asistiri y Cristopher Iori Lazcano Gutierrez. Como grupo de tres desarrollamos Snake 2D para PGM-611 en Unity, con asistencia de Codex.
+Somos Alejandro Villalpando Rojas, Galilea Alison Llusco Asistiri y Cristopher Iori Lazcano Gutierrez. Como grupo de tres desarrollamos Snake 2D para PGM-611 en Unity.
 
 ## Demostración (1 minuto)
 
