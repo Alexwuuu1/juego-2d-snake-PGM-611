@@ -38,6 +38,7 @@ namespace SnakeTrio
         {
             string scene = SceneManager.GetActiveScene().name;
             if (Input.GetKeyDown(KeyCode.M)) { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }
+            if (Input.GetKeyDown(KeyCode.F1) && scene != "Juego" && !ModalOpen) OpenHelp();
             if (Input.GetKeyDown(KeyCode.Escape) && ModalOpen) { CloseModal(); return; }
             if (Input.GetKeyDown(KeyCode.Return) && scene != "Juego" && !ModalOpen
                 && EventSystem.current.currentSelectedGameObject == null) Play();
@@ -145,6 +146,7 @@ tu mejor partida.", 74, 378, 510, 65, 22, Muted);
         {
             Button(parent, "CRÉDITOS", "CRÉDITOS", 74, 48, 138, 37, PanelColor, Light, OpenCredits, 12);
             Button(parent, "AJUSTES", "AJUSTES", 225, 48, 138, 37, PanelColor, Light, OpenSettings, 12);
+            Button(parent, "AYUDA", "CÓMO JUGAR", 376, 48, 159, 37, PanelColor, Light, OpenHelp, 12);
             Label(parent, "PROYECTO ACADÉMICO   /   PGM-611", 807, 48, 400, 37, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
         }
         RectTransform OpenModal(string name, string title, string subtitle)
@@ -168,6 +170,18 @@ tu mejor partida.", 74, 378, 510, 65, 22, Muted);
             modal.SetActive(false); Destroy(modal); modal = null;
             foreach (var selectable in canvas.GetComponentsInChildren<Selectable>()) selectable.interactable = true;
             EventSystem.current.SetSelectedGameObject(previousSelection);
+        }
+        public void OpenHelp()
+        {
+            var panel = OpenModal("Ayuda", "CÓMO JUGAR", "Una fruta, diez puntos. Llena el jardín para ganar.");
+            Label(panel, "FLECHAS", 36, 254, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "Cambia la dirección de la serpiente.", 210, 254, 394, 27, 16, Light);
+            Label(panel, "ESC / P", 36, 210, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "Pausa o continúa la partida.", 210, 210, 394, 27, 16, Light);
+            Label(panel, "M", 36, 166, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "Silencia o reactiva el sonido.", 210, 166, 394, 27, 16, Light);
+            Label(panel, "Evita los bordes y tu propio cuerpo. No puedes girar
+directamente hacia atrás. Elige un giro por paso.", 36, 89, 568, 60, 17, Muted);
         }
         public void OpenSettings()
         {
