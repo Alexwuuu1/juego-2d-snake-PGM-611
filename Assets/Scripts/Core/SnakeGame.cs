@@ -30,7 +30,7 @@ namespace SnakeTrio
         {
             if (Model == null || ending) return;
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)) TogglePause();
-            if (Paused || ReadyTime > 0) return;
+            if (Paused) return;
             var requested = ReadDirection(); if (requested != Vector2Int.zero) Model.QueueDirection(requested);
         }
         public static Vector2Int ReadDirection()
@@ -49,8 +49,17 @@ namespace SnakeTrio
             if (elapsed < SnakeSession.Speeds[SnakeSession.Difficulty]) return;
             elapsed -= SnakeSession.Speeds[SnakeSession.Difficulty]; Step();
         }
-        public void TogglePause()
-        { if (ending) return; Paused = !Paused; SnakeAudio.Instance.Click(); screen.ShowPause(Paused); }
+        public void TogglePause() { SetPaused(!Paused); }
+        public void SetPaused(bool paused)
+        {
+            if (ending || Model == null || Paused == paused) return;
+            Paused = paused;
+            if (!paused) ReadyTime = Mathf.Max(ReadyTime, 1f);
+            screen.ShowPause(paused);
+        }
+        public void PauseForFocusLoss() { SetPaused(true); }
+        void OnApplicationFocus(bool focus) { if (!focus) PauseForFocusLoss(); }
+        void OnApplicationPause(bool paused) { if (paused) PauseForFocusLoss(); }
 
         public StepOutcome Step()
         {
