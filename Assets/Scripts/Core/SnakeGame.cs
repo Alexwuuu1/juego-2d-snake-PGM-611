@@ -108,6 +108,8 @@ namespace SnakeTrio
         public static Vector2 World(Vector2Int cell)
         { return Center + new Vector2(cell.x - 13.5f, cell.y - 9.5f) * Cell; }
         public void SkipReadyForValidation() { ReadyTime = 0; }
+        public void FreezeForCapture() { Paused = true; ReadyTime = 0; }
+        public void PlaceFoodForValidation(Vector2Int cell) { Model.SetFoodForValidation(cell); RefreshSprites(); }
         public bool HasFoodColliderAt(Vector2Int cell)
         {
             Physics2D.SyncTransforms();
