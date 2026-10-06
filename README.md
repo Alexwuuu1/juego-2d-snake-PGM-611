@@ -57,3 +57,12 @@ Los sprites PNG se importan como Sprite (2D and UI), con filtro Point y 32 píxe
 Cada persona debe aceptar su invitación al repositorio. Las ramas de trabajo son `feature/alejandro`, `feature/galilea` y `feature/criss`. Se integran por pull request a `develop`; después de probar, se pasa `develop` a `main`. `main` contiene la entrega. No modifiquen el autor de commits anteriores.
 
 El archivo `docs/PARA_CRISS.md` contiene tareas y cambios preparados para que Cristopher revise, pruebe y suba desde su propia cuenta.
+
+
+## Vista del juego
+
+![Menú](docs/capturas/Menu.png)
+
+![Partida](docs/capturas/Juego.png)
+
+![Resultado](docs/capturas/Resultado.png)
