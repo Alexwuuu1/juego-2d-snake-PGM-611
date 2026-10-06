@@ -271,8 +271,16 @@ namespace SnakeTrio
                 new Vector2Int(7,6),new Vector2Int(6,6),new Vector2Int(5,6),new Vector2Int(5,5),new Vector2Int(5,4) };
             for (int i = path.Length - 1; i >= 0; i--)
             { var image = Box(parent, "Serpiente", x + path[i].x * cell, y + path[i].y * cell, cell, cell, Color.white);
-              image.sprite = i == 0 ? headSprite : bodySprite; }
-            var fruit = Box(parent, "Fruta", x + 14 * cell, y + 4 * cell, cell, cell, Color.white); fruit.sprite = fruitSprite;
+              PixelSprite(image, i == 0 ? headSprite : bodySprite, cell); }
+            var fruit = Box(parent, "Fruta", x + 14 * cell, y + 4 * cell, cell, cell, Color.white); PixelSprite(fruit, fruitSprite, cell);
+        }
+        static void PixelSprite(Image image, Sprite sprite, float cell)
+        {
+            image.sprite = sprite;
+            float scale = cell / 32f;
+            // Conservar el lienzo original aunque el importador recorte la transparencia.
+            image.rectTransform.sizeDelta = sprite.rect.size * scale;
+            image.rectTransform.anchoredPosition += (Vector2.one * 16 - sprite.pivot) * scale;
         }
         static RectTransform Rect(Transform parent, string name, float x, float y, float w, float h)
         {
