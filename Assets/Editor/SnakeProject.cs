@@ -1,10 +1,12 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
@@ -14,13 +16,35 @@ public static class SnakeProject
 {
     const string Root = "Assets/";
     static readonly string[] Scenes = { "Menu", "Juego", "Resultado" };
-    static Sprite Sprite(string path) => AssetDatabase.LoadAssetAtPath<Sprite>(Root + "Sprites/" + path + ".png");
+    static Sprite Sprite(string path)
+    {
+        string name = Path.GetFileName(path);
+        int frame = name == "HeadBlink" || name == "FruitSpark" ? 1 : 0;
+        if (name == "HeadBlink") name = "Head";
+        if (name == "FruitSpark") name = "Fruit";
+        string asset = Root + "Sprites/Aseprite/" + name + ".aseprite";
+        var sprites = AssetDatabase.LoadAllAssetsAtPath(asset).OfType<Sprite>().OrderBy(s => s.name, StringComparer.Ordinal).ToArray();
+        if (sprites.Length <= frame) throw new BuildFailedException("Sprite Aseprite ausente: " + asset + " frame " + frame);
+        return sprites[frame];
+    }
 
     [MenuItem("Snake Trío/Preparar escenas")]
     public static void Prepare()
     {
         foreach (string dir in new[] { "Scenes", "Prefabs", "Animations", "Materials", "Tiles" }) Directory.CreateDirectory(Root + dir);
         AssetDatabase.Refresh();
+        foreach (string path in Directory.GetFiles(Root + "Sprites/Aseprite", "*.aseprite"))
+        {
+            var importer = AssetImporter.GetAtPath(path.Replace('\\', '/')) as AsepriteImporter;
+            if (importer == null) throw new BuildFailedException("Importador Aseprite ausente: " + path);
+            importer.importMode = FileImportModes.AnimatedSprite;
+            importer.layerImportMode = LayerImportModes.MergeFrame;
+            importer.spritePixelsPerUnit = 32; importer.filterMode = FilterMode.Point;
+            importer.pivotSpace = PivotSpaces.Canvas; importer.pivotAlignment = SpriteAlignment.Center;
+            importer.generateModelPrefab = false; importer.generateAnimationClips = true;
+            importer.SaveAndReimport();
+        }
+        Debug.Log("ASEPRITE_OK: fuentes editables importadas y usadas por sprites, prefabs y animaciones.");
         foreach (string id in AssetDatabase.FindAssets("t:Texture2D", new[] { Root + "Sprites" }))
         {
             var importer = AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(id)) as TextureImporter;
@@ -33,8 +57,8 @@ public static class SnakeProject
         var material = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>(Root + "Materials/SinFriccion.physicsMaterial2D");
         if (material == null) { material = new PhysicsMaterial2D("Sin fricción"); AssetDatabase.CreateAsset(material, Root + "Materials/SinFriccion.physicsMaterial2D"); }
         material.friction = 0; material.bounciness = 0;
-        var blink = Animation("Parpadeo", "Snake/Head", "Snake/HeadBlink", 1.4f, .1f);
-        var sparkle = Animation("BrilloFruta", "Food/Fruit", "Food/FruitSpark", .35f, .15f);
+        var blink = Animation("Parpadeo", "Snake/Head");
+        var sparkle = Animation("BrilloFruta", "Food/Fruit");
         var head = Prefab("Cabeza", Sprite("Snake/Head"), ContactKind.Body, material, blink, true);
         var body = Prefab("Segmento", Sprite("Snake/Body"), ContactKind.Body, material);
         var food = Prefab("Comida", Sprite("Food/Fruit"), ContactKind.Food, material, sparkle);
@@ -78,7 +102,7 @@ public static class SnakeProject
         for (int i = 0; i < 3; i++) settings[i] = new EditorBuildSettingsScene(Root + "Scenes/" + Scenes[i] + ".unity", true);
         EditorBuildSettings.scenes = settings;
         PlayerSettings.productName = "Snake Trío · PGM-611"; PlayerSettings.companyName = "Equipo PGM-611";
-        PlayerSettings.bundleVersion = "1.1.0";
+        PlayerSettings.bundleVersion = "1.2.0";
         PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
@@ -95,12 +119,23 @@ public static class SnakeProject
         tile.sprite = sprite; tile.colliderType = UnityEngine.Tilemaps.Tile.ColliderType.None;
         tile.transform = Matrix4x4.Scale(Vector3.one * SnakeGame.Cell); EditorUtility.SetDirty(tile); return tile;
     }
-    static AnimatorController Animation(string name, string first, string second, float hold, float blink)
+    static AnimatorController Animation(string name, string source)
     {
+        string asset = AssetDatabase.GetAssetPath(Sprite(source));
+        var imported = AssetDatabase.LoadAllAssetsAtPath(asset).OfType<AnimationClip>().FirstOrDefault();
+        if (imported == null) throw new BuildFailedException("Animación Aseprite ausente: " + asset);
+        var binding = AnimationUtility.GetObjectReferenceCurveBindings(imported)
+            .FirstOrDefault(b => b.type == typeof(SpriteRenderer) && b.propertyName == "m_Sprite");
+        var frames = AnimationUtility.GetObjectReferenceCurve(imported, binding);
+        if (frames == null || frames.Length < 2) throw new BuildFailedException("Frames Aseprite ausentes: " + asset);
+        var loop = frames.ToList();
+        loop.Add(new ObjectReferenceKeyframe { time = imported.length + 1f / imported.frameRate, value = frames[0].value });
         var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Root + "Animations/" + name + ".anim");
         if (clip == null) { clip = new AnimationClip(); AssetDatabase.CreateAsset(clip, Root + "Animations/" + name + ".anim"); }
+        clip.frameRate = imported.frameRate;
         AnimationUtility.SetObjectReferenceCurve(clip, new EditorCurveBinding { path = "", type = typeof(SpriteRenderer), propertyName = "m_Sprite" },
-            new[] { new ObjectReferenceKeyframe { time = 0, value = Sprite(first) }, new ObjectReferenceKeyframe { time = hold, value = Sprite(second) }, new ObjectReferenceKeyframe { time = hold + blink, value = Sprite(first) } });
+            loop.ToArray());
+        Debug.Log("ASEPRITE_ANIMATION_OK: " + name + ", " + clip.length + " segundos desde " + asset);
         var settings = AnimationUtility.GetAnimationClipSettings(clip); settings.loopTime = true; AnimationUtility.SetAnimationClipSettings(clip, settings);
         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Root + "Animations/" + name + ".controller");
         if (controller == null) { controller = AnimatorController.CreateAnimatorControllerAtPath(Root + "Animations/" + name + ".controller"); controller.AddMotion(clip); }
@@ -128,6 +163,14 @@ public static class SnakeProject
     public static void Validate()
     {
         Action<bool, string> require = (ok, message) => { if (!ok) throw new BuildFailedException(message); };
+        foreach (string asset in Directory.GetFiles(Root + "Sprites/Aseprite", "*.aseprite"))
+        {
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(asset).OfType<Sprite>().ToArray();
+            int expected = asset.EndsWith("Head.aseprite") || asset.EndsWith("Fruit.aseprite") ? 2 : 1;
+            require(sprites.Length == expected, "Frames incorrectos: " + asset);
+            foreach (var sprite in sprites) require(Mathf.Approximately(sprite.pixelsPerUnit, 32), "Escala Aseprite incorrecta");
+        }
+        require(AssetDatabase.GetAssetPath(Sprite("Snake/Head")).EndsWith(".aseprite"), "Cabeza debe usar Aseprite");
         var model = new SnakeModel(8, 6, 7);
         require(!model.QueueDirection(Vector2Int.left), "No permitir giro inverso");
         require(model.QueueDirection(Vector2Int.up) && !model.QueueDirection(Vector2Int.left), "Un giro por paso");
@@ -160,7 +203,7 @@ public static class SnakeProject
     {
         Prepare(); Validate();
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = Array.ConvertAll(Scenes, s => Root + "Scenes/" + s + ".unity"),
-            locationPathName = "Builds/Windows-v1.1/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
+            locationPathName = "Builds/Windows-v1.2/SnakeTrio.exe", target = BuildTarget.StandaloneWindows64, options = BuildOptions.None });
         if (report.summary.result != BuildResult.Succeeded) throw new BuildFailedException("Compilación Windows: " + report.summary.result);
         Debug.Log("BUILD_OK: " + report.summary.totalSize + " bytes");
     }
