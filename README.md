@@ -24,7 +24,7 @@ Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la
 - Colisiones con bordes y cuerpo; victoria al completar el tablero.
 - Tres escenas: menú, juego y resultado.
 - Música, efectos de comida, choque, victoria y botones.
-- Ayuda, créditos y ajustes con volumen de música y efectos independientes.
+- Ayuda, créditos y ajustes con volumen de música y efectos independientes y una opción para restablecer el sonido (música 25%, efectos 32%, sonido activo).
 - Pausa automática al cambiar de ventana y cuenta breve al reanudar.
 - Confirmación antes de reiniciar o abandonar la partida desde la pausa.
 - Resultados con tiempo, frutas, longitud, movimientos y récord por dificultad.

@@ -230,12 +230,14 @@ namespace SnakeTrio
             var panel = OpenModal("Ajustes", "A TU MEDIDA", "Volumen guardado · F11 cambia la pantalla");
             VolumeControl(panel, "MÚSICA", 226, SnakeAudio.Instance.MusicVolume, SnakeAudio.Instance.SetMusicVolume);
             VolumeControl(panel, "EFECTOS", 142, SnakeAudio.Instance.EffectsVolume, SnakeAudio.Instance.SetEffectsVolume);
-            var mute = Button(panel, "SILENCIAR", "", 36, 87, 568, 40, Background, Light,
+            var mute = Button(panel, "SILENCIAR", "", 36, 87, 274, 40, Background, Light,
                 () => { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }, 14);
             muteText = mute.GetComponentInChildren<Text>(); RefreshMute();
+            Button(panel, "RESTABLECER", "RESTABLECER", 330, 87, 274, 40, Background, Light,
+                () => { SnakeAudio.Instance.ResetSettings(); OpenSettings(); }, 13);
         }
         void RefreshMute()
-        { if (muteText != null) muteText.text = SnakeAudio.Instance.Muted ? "REACTIVAR SONIDO  /  M" : "SILENCIAR SONIDO  /  M"; }
+        { if (muteText != null) muteText.text = SnakeAudio.Instance.Muted ? "REACTIVAR  /  M" : "SILENCIAR  /  M"; }
         void VolumeControl(Transform parent, string title, float y, float value, Action<float> changed)
         {
             Label(parent, title, 36, y + 35, 360, 25, 13, Mint, FontStyle.Bold);
