@@ -12,7 +12,10 @@ namespace SnakeTrio
         {
             string[] args = Environment.GetCommandLineArgs();
             if (Array.Exists(args, a => a.StartsWith("--capture-") || a == "--smoke-test"))
-            { var root = new GameObject("Validación runtime"); DontDestroyOnLoad(root); root.AddComponent<SnakeDiagnostics>(); }
+            {
+                Application.runInBackground = true;
+                var root = new GameObject("Validación runtime"); DontDestroyOnLoad(root); root.AddComponent<SnakeDiagnostics>();
+            }
         }
         IEnumerator Start()
         {
@@ -20,6 +23,7 @@ namespace SnakeTrio
             bool smoke = Array.Exists(args, a => a == "--smoke-test");
             bool captureGame = Array.Exists(args, a => a == "--capture-game");
             bool captureResult = Array.Exists(args, a => a == "--capture-result");
+            bool capturePause = Array.Exists(args, a => a == "--capture-pause");
             if (smoke)
             {
                 var play = GameObject.Find("JUGAR");
@@ -29,10 +33,21 @@ namespace SnakeTrio
                 if (sound.Muted == muted) Fail("Alternar silencio");
                 sound.ToggleMute();
                 if (SnakeSession.Clock(125.9f) != "02:05") Fail("Formato del cronómetro");
+                var menu = FindFirstObjectByType<SnakeScreen>(); int difficulty = SnakeSession.Difficulty;
+                menu.SelectDifficulty(2); if (SnakeSession.Difficulty != 2) Fail("Seleccionar dificultad");
+                menu.SelectDifficulty(difficulty);
+                menu.OpenCredits(); if (menu.ModalName != "Créditos") Fail("Abrir créditos");
+                menu.CloseModal(); menu.OpenSettings();
+                if (menu.ModalName != "Ajustes" || FindObjectsByType<UnityEngine.UI.Slider>(FindObjectsSortMode.None).Length != 2) Fail("Ajustes de audio");
+                float musicBefore = sound.MusicVolume, effectsBefore = sound.EffectsVolume;
+                foreach (var slider in FindObjectsByType<UnityEngine.UI.Slider>(FindObjectsSortMode.None)) slider.value = .62f;
+                if (Mathf.Abs(sound.MusicVolume - .62f) > .001f || Mathf.Abs(sound.EffectsVolume - .62f) > .001f) Fail("Cambiar volumen desde la interfaz");
+                sound.SetMusicVolume(musicBefore); sound.SetEffectsVolume(effectsBefore);
+                menu.CloseModal(); menu.OpenHelp(); if (menu.ModalName != "Ayuda") Fail("Ayuda"); menu.CloseModal();
                 Debug.Log("SMOKE_SETTINGS_OK: sonido y formato de tiempo.");
             }
-            if (smoke || captureGame) SceneManager.LoadScene("Juego");
-            if (captureResult) { SnakeSession.LastScore = 120; SnakeSession.LastFruits = 12; SnakeSession.Reason = "Chocaste contra el borde"; SceneManager.LoadScene("Resultado"); }
+            if (smoke || captureGame || capturePause) SceneManager.LoadScene("Juego");
+            if (captureResult) { SnakeSession.LastScore = 120; SnakeSession.LastFruits = 12; SnakeSession.LastDuration = 98; SnakeSession.LastLength = 15; SnakeSession.LastMoves = 720; SnakeSession.LastDifficulty = SnakeSession.Difficulty; SnakeSession.Reason = "Chocaste contra el borde"; SceneManager.LoadScene("Resultado"); }
             yield return new WaitForSecondsRealtime(.8f);
             if (smoke)
             {
@@ -41,6 +56,9 @@ namespace SnakeTrio
                 if (game.Segments[0].GetComponent<Rigidbody2D>() == null || game.Segments[0].GetComponent<Collider2D>() == null) Fail("Componentes físicos");
                 if (!game.HasFoodColliderAt(game.Model.Food)) Fail("Collider2D de comida");
                 game.TogglePause(); if (!game.Paused) Fail("Pausa");
+                var ui = FindFirstObjectByType<SnakeScreen>();
+                ui.Confirm("PRUEBA", "Confirmar reinicio", game.RestartGame);
+                ui.CloseModal(); if (!game.Paused) Fail("Cancelar confirmación conserva la partida");
                 var headBefore = game.Model.Body[0]; float timeBefore = game.PlayTime; yield return new WaitForSecondsRealtime(.3f);
                 if (game.Model.Body[0] != headBefore || game.PlayTime != timeBefore) Fail("La pausa no detuvo el movimiento");
                 game.TogglePause(); if (game.ReadyTime < .9f) Fail("Cuenta de reanudación");
@@ -53,9 +71,14 @@ namespace SnakeTrio
                 if (FindFirstObjectByType<SnakeScreen>() == null) Fail("Escena de resultado");
                 Debug.Log("SMOKE_RESULT_OK: transición y pantalla final."); Application.Quit(0); yield break;
             }
-            string output = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.dataPath),
-                captureGame ? "SnakeTrio-Juego.png" : captureResult ? "SnakeTrio-Resultado.png" : "SnakeTrio-Menu.png");
+            string captureName = captureGame ? "Juego" : captureResult ? "Resultado" : capturePause ? "Pausa" : "Menu";
+            var screen = FindFirstObjectByType<SnakeScreen>();
+            if (Array.Exists(args, a => a == "--capture-credits")) { screen.OpenCredits(); captureName = "Creditos"; }
+            if (Array.Exists(args, a => a == "--capture-settings")) { screen.OpenSettings(); captureName = "Ajustes"; }
+            if (Array.Exists(args, a => a == "--capture-help")) { screen.OpenHelp(); captureName = "Ayuda"; }
+            string output = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.dataPath), "SnakeTrio-" + captureName + ".png");
             if (captureGame) FindFirstObjectByType<SnakeGame>().FreezeForCapture();
+            if (capturePause) FindFirstObjectByType<SnakeGame>().SetPaused(true);
             yield return null;
             yield return new WaitForEndOfFrame(); ScreenCapture.CaptureScreenshot(output);
             yield return new WaitForSecondsRealtime(1); Debug.Log("CAPTURE_OK " + output); Application.Quit(0);
