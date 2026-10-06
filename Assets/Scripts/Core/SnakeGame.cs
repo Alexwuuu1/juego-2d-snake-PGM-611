@@ -37,10 +37,10 @@ namespace SnakeTrio
         }
         public static Vector2Int ReadDirection()
         {
-            if (Input.GetKeyDown(KeyCode.UpArrow)) return Vector2Int.up;
-            if (Input.GetKeyDown(KeyCode.DownArrow)) return Vector2Int.down;
-            if (Input.GetKeyDown(KeyCode.LeftArrow)) return Vector2Int.left;
-            if (Input.GetKeyDown(KeyCode.RightArrow)) return Vector2Int.right;
+            if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W)) return Vector2Int.up;
+            if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) return Vector2Int.down;
+            if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A)) return Vector2Int.left;
+            if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) return Vector2Int.right;
             return Vector2Int.zero;
         }
         void FixedUpdate()

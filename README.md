@@ -34,7 +34,7 @@ Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la
 
 | Tecla | Acción |
 | --- | --- |
-| Flechas | Cambiar dirección |
+| Flechas o W/A/S/D | Cambiar dirección |
 | Esc o P | Pausar o continuar |
 | Enter | Activar el botón seleccionado o comenzar desde el menú |
 | R | Volver a jugar desde el resultado |

@@ -91,7 +91,7 @@ namespace SnakeTrio
             difficultyText = Label(canvas, "", 74, 245, 495, 25, 14, Muted);
             Button(canvas, "JUGAR", "JUGAR   →", 74, 158, 312, 62, Mint, Background, Play, 22);
             Button(canvas, "SALIR", "SALIR", 404, 158, 131, 62, PanelColor, Light, Application.Quit, 16);
-            Label(canvas, "Flechas para moverte  ·  Enter para empezar", 74, 117, 525, 24, 14, Muted);
+            Label(canvas, "Flechas o WASD para moverte  ·  Enter para empezar", 74, 117, 525, 24, 14, Muted);
             var card = Box(canvas, "Tarjeta de jardín", 650, 171, 557, 437, PanelColor); SnakeTheme.Round(card);
             Label(canvas, "EL JARDÍN", 684, 574, 200, 26, 12, Mint, FontStyle.Bold);
             Label(canvas, "28 × 20 CELDAS", 978, 574, 194, 26, 12, Muted, FontStyle.Normal, TextAnchor.MiddleRight);
@@ -129,7 +129,7 @@ namespace SnakeTrio
             Label(canvas, "TU MEJOR PARTIDA", 1032, 507, 204, 30, 12, Muted, FontStyle.Bold);
             Label(canvas, SnakeSession.Record(SnakeSession.Difficulty).ToString("000"), 1032, 442, 200, 60, 44, Mint, FontStyle.Bold);
             Box(canvas, "Divisor lateral", 1032, 416, 194, 1, Hex("31504a"));
-            Label(canvas, "FLECHAS\nCambiar dirección\n\nESC / P\nPausa\n\nM\nSilenciar sonido", 1032, 199, 206, 196, 16, Muted);
+            Label(canvas, "FLECHAS / WASD\nCambiar dirección\n\nESC / P\nPausa\n\nM\nSilenciar sonido", 1032, 199, 206, 196, 16, Muted);
             Label(canvas, "UN GIRO POR PASO   /   PLANEA TU SIGUIENTE MOVIMIENTO", 306, 54, 680, 27, 12, Muted, FontStyle.Normal, TextAnchor.MiddleCenter);
             readyPanel = Box(canvas, "Cuenta de inicio", 393, 320, 493, 73, Background).gameObject; SnakeTheme.Round(readyPanel.GetComponent<Image>());
             readyText = Label(readyPanel.transform, "PREPÁRATE", 0, 0, 493, 73, 24, Mint, FontStyle.Bold, TextAnchor.MiddleCenter);
@@ -211,7 +211,7 @@ namespace SnakeTrio
         public void OpenHelp()
         {
             var panel = OpenModal("Ayuda", "CÓMO JUGAR", "Una fruta, diez puntos. Llena el jardín para ganar.");
-            Label(panel, "FLECHAS", 36, 254, 157, 27, 14, Mint, FontStyle.Bold);
+            Label(panel, "FLECHAS / WASD", 36, 254, 157, 27, 14, Mint, FontStyle.Bold);
             Label(panel, "Cambia la dirección de la serpiente.", 210, 254, 394, 27, 16, Light);
             Label(panel, "ESC / P", 36, 210, 157, 27, 14, Mint, FontStyle.Bold);
             Label(panel, "Pausa o continúa la partida.", 210, 210, 394, 27, 16, Light);
