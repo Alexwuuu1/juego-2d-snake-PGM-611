@@ -26,6 +26,7 @@ namespace SnakeTrio
         void Awake()
         {
             if (SnakeAudio.Instance == null) new GameObject("Audio del juego").AddComponent<SnakeAudio>();
+            Screen.fullScreenMode = SnakePreferences.Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             var go = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvas = go.GetComponent<RectTransform>(); go.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -38,6 +39,11 @@ namespace SnakeTrio
         }
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.F11))
+            {
+                SnakePreferences.Fullscreen = !SnakePreferences.Fullscreen;
+                Screen.fullScreenMode = SnakePreferences.Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+            }
             string scene = SceneManager.GetActiveScene().name;
             if (Input.GetKeyDown(KeyCode.M)) { SnakeAudio.Instance.ToggleMute(); RefreshMute(); }
             if (Input.GetKeyDown(KeyCode.F1) && scene != "Juego" && !ModalOpen) OpenHelp();
@@ -221,7 +227,7 @@ namespace SnakeTrio
         }
         public void OpenSettings()
         {
-            var panel = OpenModal("Ajustes", "A TU MEDIDA", "Los ajustes se guardan para la próxima vez.");
+            var panel = OpenModal("Ajustes", "A TU MEDIDA", "Volumen guardado · F11 cambia la pantalla");
             VolumeControl(panel, "MÚSICA", 226, SnakeAudio.Instance.MusicVolume, SnakeAudio.Instance.SetMusicVolume);
             VolumeControl(panel, "EFECTOS", 142, SnakeAudio.Instance.EffectsVolume, SnakeAudio.Instance.SetEffectsVolume);
             var mute = Button(panel, "SILENCIAR", "", 36, 87, 568, 40, Background, Light,

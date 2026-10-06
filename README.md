@@ -40,6 +40,7 @@ Extraer el ZIP completo y abrir `SnakeTrio.exe`. Mantener junto al ejecutable la
 | R | Volver a jugar desde el resultado |
 | M | Silenciar o reactivar sonido |
 | F1 | Abrir ayuda desde el menú o resultado |
+| F11 | Alternar ventana y pantalla completa |
 | F12 | Guardar una captura junto al ejecutable |
 
 La serpiente no puede girar directamente 180 grados. Se procesa un giro por avance.
