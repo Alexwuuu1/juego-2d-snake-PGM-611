@@ -159,8 +159,7 @@ namespace SnakeTrio
         {
             var image = Box(parent, name, x, y, w, h, background); image.raycastTarget = true;
             var button = image.gameObject.AddComponent<Button>(); button.targetGraphic = image;
-            var colors = button.colors; colors.highlightedColor = new Color(.85f, 1, .91f); colors.pressedColor = new Color(.62f,.85f,.7f); button.colors = colors;
-            button.navigation = new Navigation { mode = Navigation.Mode.None };
+            SnakeTheme.Style(button);
             Label(image.transform, caption, 0, 0, w, h, size, foreground, FontStyle.Bold, TextAnchor.MiddleCenter);
             button.onClick.AddListener(() => { SnakeAudio.Instance.Click(); action(); }); return button;
         }
