@@ -10,6 +10,8 @@ namespace SnakeTrio
         public GameObject headPrefab, bodyPrefab, foodPrefab;
         public SnakeModel Model { get; private set; }
         public bool Paused { get; private set; }
+        public float PlayTime { get; private set; }
+        public int Moves { get; private set; }
         public float ReadyTime { get; private set; } = 1.5f;
         public static readonly float Cell = .45f;
         public static readonly Vector2 Center = new Vector2(0, -.25f);
@@ -45,7 +47,7 @@ namespace SnakeTrio
         {
             if (Model == null || Paused || ending) return;
             if (ReadyTime > 0) { ReadyTime = Mathf.Max(0, ReadyTime - Time.fixedDeltaTime); return; }
-            elapsed += Time.fixedDeltaTime;
+            PlayTime += Time.fixedDeltaTime; elapsed += Time.fixedDeltaTime;
             if (elapsed < SnakeSession.Speeds[SnakeSession.Difficulty]) return;
             elapsed -= SnakeSession.Speeds[SnakeSession.Difficulty]; Step();
         }
@@ -83,16 +85,15 @@ namespace SnakeTrio
                 }
             }
             var outcome = Model.Advance(blocked, reason);
+            if (outcome == StepOutcome.Moved || outcome == StepOutcome.Ate || outcome == StepOutcome.Won) Moves++;
             RefreshSprites();
             if (outcome == StepOutcome.Ate) SnakeAudio.Instance.Eat();
             if (outcome == StepOutcome.Lost || outcome == StepOutcome.Won)
             {
                 ending = true;
                 if (outcome == StepOutcome.Won) SnakeAudio.Instance.Win(); else SnakeAudio.Instance.Hit();
-                SnakeSession.LastScore = Model.Score; SnakeSession.LastFruits = Model.Fruits;
-                SnakeSession.Won = Model.Victory; SnakeSession.Reason = Model.EndReason;
-                PlayerPrefs.SetInt("SnakeTrio_Record", Mathf.Max(Model.Score, PlayerPrefs.GetInt("SnakeTrio_Record", 0)));
-                PlayerPrefs.Save(); StartCoroutine(Finish());
+                SnakeSession.SaveResult(Model, PlayTime, Moves);
+                StartCoroutine(Finish());
             }
             screen.RefreshScore(); return outcome;
         }
